@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import { useEffect } from "react";
 import { sfx } from "@/lib/audio";
+import { L } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
 import { Btn } from "./Btn";
 import { En } from "./En";
@@ -13,10 +14,7 @@ export function Goodnight({ name, reason, onParent }: { name: string; reason: "l
     sfx("goodnight");
     const t = setTimeout(
       () =>
-        void lunaSay(
-          reason === "bedtime" ? `לילה טוב ${name}! עכשיו זמן לנוח. נתראה מחר!` : `איזו הרפתקה! לונה צריכה לנוח עכשיו. הכוכבים שמורים בצנצנת. נתראה מחר, ${name}!`,
-          "Good night!",
-        ),
+        void lunaSay(L.goodnight(name, reason)),
       800,
     );
     return () => clearTimeout(t);

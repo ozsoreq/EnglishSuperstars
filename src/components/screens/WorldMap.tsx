@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from "motion/react";
 import { sfx } from "@/lib/audio";
 import { ISLANDS } from "@/lib/content/islands";
+import { L } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
 import type { Profile } from "@/lib/store";
 import { Btn } from "../Btn";
@@ -56,7 +57,7 @@ export function WorldMap({ profile, onIsland, onBack }: { profile: Profile; onIs
                     onIsland(isl.id);
                   } else {
                     sfx("soft");
-                    void lunaSay(`${isl.name.he} עוד מכוסה בערפל. ${isl.friend.name.he} מחכה לנו שם בקרוב!`);
+                    void lunaSay(L.fogIsland(isl));
                   }
                 }}
                 className="relative flex flex-col items-center"

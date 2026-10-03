@@ -8,6 +8,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { sfx, saySound, sayWord } from "@/lib/audio";
 import { WORDS } from "@/lib/content/words";
+import { L } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
 import { En } from "../En";
 import { Picture } from "../Picture";
@@ -56,8 +57,8 @@ export function SoundTrain({ activity, chapter, onDone }: GameProps) {
   const r = rounds[round];
 
   const promptRound = async (x: Round) => {
-    if (x.kind === "first") await lunaSay("באיזה צליל מתחילה המילה?", x.en);
-    else await lunaSay("בנו את המילה מהצלילים!", x.en);
+    if (x.kind === "first") await lunaSay(L.firstSound(x.en));
+    else await lunaSay(L.buildWord(x.en));
   };
 
   useEffect(() => {
@@ -83,7 +84,7 @@ export function SoundTrain({ activity, chapter, onDone }: GameProps) {
       setTimeout(() => setShake(null), 450);
       const misses = tracker.miss(r.key);
       // First miss: a hint. Second miss: the right carriage glows to show the way.
-      nudge(r.kind === "first" ? r.wordId : undefined, misses, misses === 1 ? "הקשיבו לצליל ונסו שוב" : "הקרון הזוהר הוא הנכון!");
+      nudge(r.kind === "first" ? r.wordId : undefined, misses, misses === 1 ? L.trainHint() : L.trainShow());
       if (misses >= 2) setHint(true);
       return;
     }

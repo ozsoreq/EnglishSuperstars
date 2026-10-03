@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "tsc --noEmit",
     "test": "vitest run",
-    "emoji": "node scripts/sync-emoji.mjs"
+    "emoji": "node scripts/sync-emoji.mjs",
+    "voice:setup": "bash scripts/voice/setup.sh",
+    "voice": "tsx scripts/voice/collect.ts && .cache/voice/venv/bin/python scripts/voice/generate.py"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
@@ -27,6 +29,7 @@
     "@types/react-dom": "^19.3.0",
     "postcss": "^8.5.28",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "vitest": "^5.0.3"
   }

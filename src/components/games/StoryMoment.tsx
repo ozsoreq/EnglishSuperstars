@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { sayWord, sfx } from "@/lib/audio";
 import { WORDS } from "@/lib/content/words";
 import { emit } from "@/lib/events";
+import { L } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
 import { logSpeech } from "@/lib/store";
 import type { Quality } from "@/lib/srs";
@@ -42,9 +43,9 @@ export function StoryMoment({ activity, chapter, onDone }: GameProps) {
     setTries(0);
     (async () => {
       await wait(500);
-      if (i === 0) await lunaSay("בואו נלמד את מילות הקסם!");
+      if (i === 0) await lunaSay(L.letsLearn());
       if (cancelled) return;
-      await lunaSay(`${w.he}. באנגלית אומרים:`, w.en);
+      await lunaSay(L.wordIntro(w));
       await sayWord(w.en);
       if (!cancelled) setStep("say");
     })();
@@ -67,7 +68,7 @@ export function StoryMoment({ activity, chapter, onDone }: GameProps) {
     sfx("whoosh");
     setRestored((r) => [...r, id]);
     emit("answer.correct", { wordId: id });
-    void lunaSay(chapter.restoreLine);
+    void lunaSay(L.restore(chapter));
     await wait(1500);
     if (i + 1 >= words.length) {
       const all = spoke ? [...said, id] : said;
@@ -86,7 +87,7 @@ export function StoryMoment({ activity, chapter, onDone }: GameProps) {
         if (!recognized.current.includes(id)) recognized.current.push(id);
       }
       emit("answer.correct", { wordId: id });
-      await lunaSay("מצוין!", w.en);
+      await lunaSay(L.excellent(w));
       void finishWord(true);
       return;
     }
@@ -94,10 +95,10 @@ export function StoryMoment({ activity, chapter, onDone }: GameProps) {
     const n = tries + 1;
     setTries(n);
     if (n >= 3) {
-      await lunaSay("איזה ניסיון יפה!", "Great try!");
+      await lunaSay(L.greatTry());
       void finishWord(true);
     } else {
-      await lunaSay("כמעט! עוד פעם");
+      await lunaSay(L.almostAgain());
       await sayWord(w.en);
     }
   };

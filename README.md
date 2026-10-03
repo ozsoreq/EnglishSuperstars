@@ -61,32 +61,32 @@ These are stand-ins for the full production stack in the spec. Each sits behind 
 
 ## Voice
 
-Speech is neural, not the robotic device voice:
+Luna's voice is pre-recorded with natural neural voices and shipped as small MP3s in `public/voice/` (~2 MB). Playback needs no API key and costs nothing, and the files are cached for offline play. The app plays, best first:
 
-| Who | Voice (Azure AI Speech) |
+1. **The voice pack.** A recording of every line in the catalog (`src/lib/lines.ts`), every word, item name and pet trick, and every letter sound.
+2. **Live Azure AI Speech** (`/api/tts`), if `AZURE_SPEECH_KEY` is set, for anything not in the pack.
+3. **The device's own voice**, preferring its "Natural"/"Enhanced" voices. This is only a last resort.
+
+| What | Voice |
 |---|---|
-| Luna in Hebrew | `he-IL-HilaNeural` |
-| Luna in English, model words | `en-US-JennyNeural` (friendly style, a little slower) |
-| Child model voice in "Say It to Luna" | `en-US-AnaNeural` |
-| Letter sounds (phonics) | Exact sounds via SSML IPA phonemes, e.g. /bə/ rather than "bee" |
+| Luna in English, model words | Kokoro-82M `af_heart`, a warm adult female voice (Apache-2.0, generated offline) |
+| Child model voice in "Say It to Luna" | Kokoro `af_bella` |
+| Letter sounds | Kokoro from IPA phonemes, so /bə/ is a sound rather than "bee" |
+| Luna in Hebrew | Google Cloud TTS he-IL (Chirp 3 HD, else Neural2/WaveNet), recorded once with `GOOGLE_TTS_API_KEY` |
 
-- **How it works.** `GET /api/tts` (`src/app/api/tts/route.ts`) builds SSML (`src/lib/tts.ts`), calls Azure and returns MP3. The client plays it with Howler.js (`src/lib/audio.ts`).
-- **Caching.** Each URL is immutable, so Vercel's CDN serves repeats without calling Azure again. The service worker also caches every clip for offline play, and each quest preloads its lines and words when it starts.
-- **Limits.** Requests are validated (languages, voices, letters, 240-character cap) and rate-limited per instance.
-- **Fallback.** Without a key, or when offline with nothing cached, the app uses the device's most natural voice: it prefers voices named "Natural", "Neural", "Premium" or "Enhanced". Every line is still captioned.
+**Recording the pack**
 
-To turn it on, create an Azure AI Speech resource (the free tier covers 500k characters a month). Then set these environment variables in Vercel (Project → Settings → Environment Variables) and redeploy:
-
-```
-AZURE_SPEECH_KEY=…
-AZURE_SPEECH_REGION=westeurope        # your resource's region
-# optional voice overrides
-AZURE_TTS_VOICE_EN=en-US-JennyNeural
-AZURE_TTS_VOICE_HE=he-IL-HilaNeural
-AZURE_TTS_VOICE_CHILD=en-US-AnaNeural
+```bash
+npm run voice:setup                         # once: Kokoro weights + voices from npm, Python venv in .cache/voice
+npm run voice                               # English (offline); skips Hebrew without a key
+GOOGLE_TTS_API_KEY=… npm run voice          # also records the Hebrew lines (~10k characters)
 ```
 
-Privacy: only the text the app speaks is sent to Azure. Some greetings include the child's first name. The child's own voice is never sent. Azure is listed as a processor in the parent area.
+`scripts/voice/collect.ts` lists every clip from the same catalog the screens use. `scripts/voice/generate.py` records whatever is missing, checks each clip's length and loudness, trims and normalises it, prunes stale files, and writes `src/lib/voice-pack.ts`.
+
+When you add or change a line, put it in `src/lib/lines.ts` and run `npm run voice`. Tests fail if an English line has no recording, or if a screen passes Luna a literal string.
+
+The child's name appears in captions but is never spoken, so it is never sent to any voice service.
 
 ## Pictures
 

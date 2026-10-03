@@ -1,6 +1,6 @@
 // Kochavim service worker: cache the app shell and the current Island's
 // assets so play continues on a flaky connection or a car ride.
-const CACHE = "kochavim-v2";
+const CACHE = "kochavim-v3";
 const SHELL = ["/", "/manifest.webmanifest", "/icon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -9,9 +9,12 @@ self.addEventListener("install", (event) => {
       .open(CACHE)
       .then(async (c) => {
         await c.addAll(SHELL);
-        // Emoji art is small (~800 KB total): keep all of it for offline play.
-        const list = await fetch("/emoji/manifest.json").then((r) => r.json()).catch(() => []);
-        await c.addAll(list).catch(() => {});
+        // Emoji art (~0.8 MB) and the recorded voice pack (~2 MB) are small:
+        // keep all of it for offline play.
+        for (const manifest of ["/emoji/manifest.json", "/voice/manifest.json"]) {
+          const list = await fetch(manifest).then((r) => r.json()).catch(() => []);
+          await c.addAll(list).catch(() => {});
+        }
       })
       .then(() => self.skipWaiting()),
   );

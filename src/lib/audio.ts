@@ -4,16 +4,17 @@
  *
  * SFX are synthesised with Web Audio (short, soft, never a buzzer).
  *
- * Voice is neural first: /api/tts returns natural Azure AI Speech audio
- * (Hebrew guide, warm English guide, English child voice, exact letter
- * sounds), played through Howler.js. If the route isn't configured or the
- * device is offline with nothing cached, it falls back to the best voice the
- * device has (preferring its "natural"/"enhanced" voices). Every spoken line
- * is also captioned on screen.
+ * Voice, best first, all played through Howler.js:
+ *  1. The voice pack — natural neural recordings of every catalogued line,
+ *     shipped as static files (public/voice, see scripts/voice/).
+ *  2. /api/tts — live Azure AI Speech, when a key is configured.
+ *  3. The device's own voice, preferring its "natural"/"enhanced" voices.
+ * Every spoken line is also captioned on screen.
  */
 import { Howl } from "howler";
 import { LETTER_SOUNDS } from "./content/words";
-import { ttsUrl, type TtsKind, type TtsVoice } from "./tts";
+import { ttsUrl, voiceKey, type TtsKind, type TtsVoice } from "./tts";
+import { VOICE_PACK } from "./voice-pack";
 
 
 let ctx: AudioContext | null = null;
@@ -232,11 +233,24 @@ export function speak(text: string, lang: Lang, opts: SpeakOptions = {}): Promis
   return Promise.race([speakNow(text, lang, opts), new Promise<void>((r) => setTimeout(r, cap))]);
 }
 
+/** Pre-recorded clip URL for a request, if the voice pack has it. */
+export function packUrl(r: { text: string; lang: Lang; kind: TtsKind; voice: TtsVoice }): string | null {
+  const key = voiceKey(r);
+  return VOICE_PACK.has(key) ? `/voice/${key}.mp3` : null;
+}
+
 async function speakNow(text: string, lang: Lang, opts: SpeakOptions): Promise<void> {
   if (!voiceOn || !text) return;
   const my = ++generation;
   const kind = opts.kind ?? "line";
-  const src = await loadClip(ttsUrl({ text, lang, kind, voice: opts.voice ?? "guide" }));
+  const req = { text, lang, kind, voice: opts.voice ?? "guide" } as const;
+  const packed = packUrl(req);
+  if (packed) {
+    current?.stop();
+    if (await playClip(packed)) return;
+    if (my !== generation) return;
+  }
+  const src = await loadClip(ttsUrl(req));
   if (my !== generation) return;
   current?.stop(); // never talk over ourselves
   if (src && (await playClip(src))) return;
@@ -256,8 +270,13 @@ export function saySound(letter: string): Promise<void> {
 
 /** Warm the cache for lines and words coming up next (no-op without neural TTS). */
 export function preloadSpeech(items: { text: string; lang: Lang; kind?: TtsKind; voice?: TtsVoice }[]) {
-  if (!voiceOn || neural === "off") return;
-  for (const i of items) void loadClip(ttsUrl({ text: i.text, lang: i.lang, kind: i.kind ?? "line", voice: i.voice ?? "guide" }));
+  if (!voiceOn) return;
+  for (const i of items) {
+    const req = { text: i.text, lang: i.lang, kind: i.kind ?? "line", voice: i.voice ?? "guide" } as const;
+    const packed = packUrl(req);
+    if (packed) void fetch(packed).catch(() => {});
+    else if (neural !== "off") void loadClip(ttsUrl(req));
+  }
 }
 
 export async function speakLines(lines: { text: string; lang: Lang }[]) {

@@ -57,6 +57,20 @@ export const LETTER_IPA: Record<string, string> = {
   z: "zː",
 };
 
+/**
+ * Stable id for a pre-recorded clip: FNV-1a 64 over "lang|kind|voice|text"
+ * (UTF-8), as 16 hex chars. scripts/voice/generate.py computes the same.
+ */
+export function voiceKey(r: TtsRequest): string {
+  const bytes = new TextEncoder().encode(`${r.lang}|${r.kind}|${r.voice}|${r.text}`);
+  let h = 0xcbf29ce484222325n;
+  for (const b of bytes) {
+    h ^= BigInt(b);
+    h = (h * 0x100000001b3n) & 0xffffffffffffffffn;
+  }
+  return h.toString(16).padStart(16, "0");
+}
+
 export function ttsUrl(r: TtsRequest): string {
   const q = new URLSearchParams({ text: r.text, lang: r.lang, kind: r.kind, voice: r.voice });
   return `/api/tts?${q.toString()}`;

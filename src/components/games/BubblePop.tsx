@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { WORDS } from "@/lib/content/words";
+import { L } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
 import { Picture } from "../Picture";
 import { En } from "../En";
@@ -73,13 +74,13 @@ export function BubblePop({ activity, onDone }: GameProps) {
     const w = WORDS[target];
     if (misses === 1) {
       nudge(target, misses);
-      await lunaSay(`${w.he}! נסו שוב`);
+      await lunaSay(L.tryAgainWord(w));
       if (!stale()) void hearWord(target);
     } else {
       busy.current = true;
       nudge(target, misses);
       setReveal(true);
-      await lunaSay("הנה היא!", w.en);
+      await lunaSay(L.hereItIs(w));
       await wait(600);
       if (stale()) return;
       setPopped(target);

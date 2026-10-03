@@ -6,6 +6,7 @@
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { WORDS } from "@/lib/content/words";
+import { L } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
 import { logSpeech } from "@/lib/store";
 import { MicButton, type MicOutcome } from "../MicButton";
@@ -50,7 +51,7 @@ export function SayIt({ activity, onDone }: GameProps) {
       cheer(document.getElementById("say-card"), id);
       if (recognized) tracker.spoke(id);
       tracker.finish(id);
-      await lunaSay(undefined, w.en);
+      await lunaSay(L.echoWord(w));
       await advance();
       return;
     }
@@ -58,11 +59,11 @@ export function SayIt({ activity, onDone }: GameProps) {
     const n = tracker.miss(id);
     setTries(n);
     if (n >= 3) {
-      await lunaSay("איזה ניסיון יפה!", "Great try!");
+      await lunaSay(L.greatTry());
       tracker.finish(id);
       await advance();
     } else {
-      await lunaSay("כמעט! הקשיבו ונסו שוב");
+      await lunaSay(L.almostListen());
       setPlay((p) => p + 1);
       await hearWord(id, "child");
       handling.current = false;

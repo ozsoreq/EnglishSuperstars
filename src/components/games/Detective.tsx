@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { saySound } from "@/lib/audio";
 import { WORDS } from "@/lib/content/words";
+import { L } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
 import { En } from "../En";
 import { Picture } from "../Picture";
@@ -30,7 +31,7 @@ export function Detective({ onDone }: GameProps) {
     setFlyTo(null);
     setShowTummy(false);
     busy.current = false;
-    if (round === 0) void lunaSay("לאיזו זכוכית מגדלת שייכת האות?");
+    if (round === 0) void lunaSay(L.detectiveIntro());
   }, [round]);
 
   const choose = async (gi: number, el: HTMLElement) => {
@@ -52,7 +53,7 @@ export function Detective({ onDone }: GameProps) {
     setTimeout(() => setWrong(null), 450);
     const misses = tracker.miss(key);
     setShowTummy(true);
-    nudge(wordId, misses, misses === 1 ? "הסתכלו לאן פונה הבטן של האות, ונסו שוב" : "הבטן מראה לנו את הדרך!");
+    nudge(wordId, misses, misses === 1 ? L.detectiveHint() : L.detectiveShow());
   };
 
   if (!letter) return null;

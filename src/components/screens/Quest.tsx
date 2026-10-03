@@ -9,9 +9,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { preloadSpeech, sfx, stopSpeaking } from "@/lib/audio";
 import { WORDS } from "@/lib/content/words";
 import { findChapter } from "@/lib/content/islands";
-import type { ActivityType } from "@/lib/content/types";
+import type { ActivityType, Island } from "@/lib/content/types";
 import { dayKey } from "@/lib/dates";
 import { emit } from "@/lib/events";
+import { L } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
 import { buildMission, starsFor, type ActivityResult } from "@/lib/mission";
 import { completeActivity, completeMission, type MissionReward, type Profile } from "@/lib/store";
@@ -88,8 +89,8 @@ export function Quest({ profile, chapterId, onExit, onCamp }: { profile: Profile
   useEffect(() => {
     if (phase.kind !== "arrive") return;
     const t = setTimeout(() => {
-      if (firstVisit) void lunaSay(chapter.problem.he, chapter.problem.en, { englishFirst: !hebrewFirst });
-      else void lunaSay(`חזרנו ל${chapter.name.he}! בואו נתאמן כדי שהקסם יישאר חזק.`, `Welcome back!`);
+      if (firstVisit) void lunaSay(L.problem(chapter), { englishFirst: !hebrewFirst });
+      else void lunaSay(L.welcomeBack(chapter));
     }, 600);
     return () => clearTimeout(t);
   }, [phase.kind, chapter, firstVisit, hebrewFirst]);
@@ -98,7 +99,7 @@ export function Quest({ profile, chapterId, onExit, onCamp }: { profile: Profile
   useEffect(() => {
     if (phase.kind !== "play") return;
     const a = activities[phase.step];
-    if (a.type !== "story") void lunaSay(chapter.gameIntro[a.type] ?? undefined);
+    if (a.type !== "story") void lunaSay(L.gameIntro(chapter, a.type));
   }, [phase, activities, chapter]);
 
   const handledSteps = useRef(new Set<number>());
@@ -110,7 +111,7 @@ export function Quest({ profile, chapterId, onExit, onCamp }: { profile: Profile
     setEarned((e) => e + total);
     setStepStars((s) => [...s, starsFor(result)]);
     if (total > 0) emit("star.earned", { amount: total });
-    if (r.newlyGold.length) void lunaSay("מילה הפכה לזהב בספר המילים!", undefined);
+    if (r.newlyGold.length) void lunaSay(L.wordWentGold());
 
     // Every 3rd activity ends with a celebration scaled to the result.
     if (step === activities.length - 1) emit("celebrate", { size: starsFor(result) });
@@ -133,10 +134,10 @@ export function Quest({ profile, chapterId, onExit, onCamp }: { profile: Profile
     sfx("fanfare");
     if (firstVisit) {
       emit("celebrate", { size: 3 });
-      void lunaSay(chapter.resolved.he, chapter.resolved.en, { englishFirst: !hebrewFirst });
+      void lunaSay(L.resolved(chapter), { englishFirst: !hebrewFirst });
     } else {
       emit("celebrate", { size: 2 });
-      void lunaSay(`${chapter.name.he} זוהר עוד יותר!`, "Great job!");
+      void lunaSay(L.shinesMore(chapter));
     }
     setTimeout(() => {
       if (bonus > 0) emit("star.earned", { amount: bonus });
@@ -285,7 +286,7 @@ export function Quest({ profile, chapterId, onExit, onCamp }: { profile: Profile
               earned={earned}
               stepStars={stepStars}
               reward={reward}
-              islandName={island.name.he}
+              island={island}
               trophy={chapter.treasure.emoji}
               onMap={exit}
               onCamp={() => {
@@ -310,7 +311,7 @@ function StarMoment({
   earned,
   stepStars,
   reward,
-  islandName,
+  island,
   trophy,
   onMap,
   onCamp,
@@ -318,7 +319,7 @@ function StarMoment({
   earned: number;
   stepStars: number[];
   reward: MissionReward;
-  islandName: string;
+  island: Island;
   trophy: string;
   onMap: () => void;
   onCamp: () => void;
@@ -327,15 +328,15 @@ function StarMoment({
     const t = setTimeout(() => {
       if (reward.islandComplete && reward.islandBonus) {
         emit("celebrate", { size: 3 });
-        void lunaSay(`סיימתם את כל ${islandName}! קיבלתם גביע וחמישים כוכבים!`, "You did it, superstar!");
+        void lunaSay(L.islandDone(island));
       } else if (reward.missionBonus) {
-        void lunaSay("המשימה של היום הושלמה! עכשיו אפשר לבחור: לבזבז כוכבים, או להמשיך לחקור.", "Done for today!");
+        void lunaSay(L.missionDone());
       } else {
-        void lunaSay("כל הכבוד! מה עושים עכשיו?", "Well done!");
+        void lunaSay(L.wellDone());
       }
     }, 500);
     return () => clearTimeout(t);
-  }, [reward, islandName]);
+  }, [reward, island]);
 
   return (
     <motion.section

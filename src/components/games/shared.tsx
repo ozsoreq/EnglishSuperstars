@@ -5,6 +5,7 @@ import { sayWord, sfx } from "@/lib/audio";
 import type { Chapter } from "@/lib/content/types";
 import { ALL_WORDS, WORDS } from "@/lib/content/words";
 import { emit } from "@/lib/events";
+import type { Line } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
 import type { Activity, ActivityResult } from "@/lib/mission";
 import type { Quality } from "@/lib/srs";
@@ -83,10 +84,10 @@ export function cheer(el?: Element | null, wordId?: string) {
 }
 
 /** Gentle wrong-answer feedback: a wobble sound and a Hebrew hint from Luna. */
-export function nudge(wordId: string | undefined, attempt: number, hintHe?: string) {
+export function nudge(wordId: string | undefined, attempt: number, hint?: Line) {
   sfx("soft");
   emit("answer.wrong", { wordId, attempt });
-  if (hintHe) void lunaSay(hintHe);
+  if (hint) void lunaSay(hint);
 }
 
 /** Play a word. Speaking games use the child voice so the model sounds like a friend. */

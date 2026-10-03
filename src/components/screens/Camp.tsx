@@ -11,6 +11,7 @@ import { CAMP, GEAR, PETS, PET_FOOD_PRICE, PET_HAPPY_DAYS, PET_TRICKS, item, typ
 import { dayKey, daysBetween } from "@/lib/dates";
 import { emit } from "@/lib/events";
 import { balance } from "@/lib/ledger";
+import { L } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
 import {
   buyItem,
@@ -52,18 +53,18 @@ export function Camp({ profile, onBack }: { profile: Profile; onBack: () => void
       const rect = el.getBoundingClientRect();
       emit("celebrate", { size: it.price >= 100 ? 3 : 2 });
       emit("answer.correct", { x: rect.left, y: rect.top });
-      void lunaSay(`יש! ${it.he} שלכם לתמיד!`, it.en);
+      void lunaSay(L.bought(it));
       if (it.kind === "gear") equip(it.slot, it.id);
     } else if (r === "insufficient") {
       sfx("soft");
-      void lunaSay(`עוד קצת כוכבים! אפשר לחסוך ל${it.he} — לחצו על הצנצנת שליד.`);
+      void lunaSay(L.needMoreStars(it));
     }
   };
 
   const saveFor = (it: ShopItem) => {
     sfx("chime");
     updateProfile({ savingGoal: it.id });
-    void lunaSay(`מעולה! חוסכים ל${it.he}. כל כוכב ממלא את הצנצנת.`);
+    void lunaSay(L.savingFor(it));
   };
 
   return (
@@ -229,8 +230,8 @@ function Pets({ profile }: { profile: Profile }) {
                       const r = feedPet(p.itemId);
                       if (r === "ok") {
                         sfx("pop");
-                        void lunaSay("ממממ! טעים!", "Yummy!");
-                      } else if (r === "insufficient") void lunaSay("צריך עוד כוכב או שניים לאוכל.");
+                        void lunaSay(L.yummy());
+                      } else if (r === "insufficient") void lunaSay(L.needFood());
                     }}
                     disabled={p.fedDay === today}
                   >
@@ -258,7 +259,7 @@ function Pets({ profile }: { profile: Profile }) {
                         emit("answer.correct", {});
                         void sayWord(t.en);
                       } else {
-                        void lunaSay("החיה לא שמעה. אמרו שוב בקול!");
+                        void lunaSay(L.petDidntHear());
                       }
                     }}
                   />
@@ -289,8 +290,8 @@ function Wishes({ profile, stars }: { profile: Profile; stars: number }) {
               const res = requestReward(r.id);
               if (res === "ok") {
                 emit("celebrate", { size: 2 });
-                void lunaSay("שלחנו את הבקשה להורים!");
-              } else void lunaSay("עוד לא מספיק כוכבים. ממשיכים לחסוך!");
+                void lunaSay(L.wishSent());
+              } else void lunaSay(L.wishShort());
             }}
           >
             <span style={{ direction: "ltr", display: "inline-block" }}>{r.price} ⭐</span>

@@ -10,6 +10,7 @@ import { sfx } from "@/lib/audio";
 import { item } from "@/lib/catalog";
 import { ISLANDS } from "@/lib/content/islands";
 import { emojiSrc } from "@/lib/emoji";
+import { L } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
 import { chapterUnlocked, type Profile } from "@/lib/store";
 import { Avatar } from "../Avatar";
@@ -84,8 +85,8 @@ export function IslandMap({
     if (!greet) return;
     const t = setTimeout(() => {
       const target = chapters[nextIndex === -1 ? locIndex : nextIndex];
-      if (nextIndex === -1) void lunaSay(`שלום ${profile.name}! כל האי זוהר. בואו נבקר חברים ונתאמן!`, `Hello, ${profile.name}!`);
-      else void lunaSay(`שלום ${profile.name}! המשימה של היום: ${target.quest}. לחצו על ${target.name.he}!`, `Hello, ${profile.name}!`);
+      if (nextIndex === -1) void lunaSay(L.greetAllDone(profile.name));
+      else void lunaSay(L.greetQuest(profile.name, target));
     }, 700);
     return () => clearTimeout(t);
   }, [greet, chapters, nextIndex, locIndex, profile.name]);
@@ -95,7 +96,7 @@ export function IslandMap({
     const ch = chapters[i];
     if (!chapterUnlocked(profile, 0, i)) {
       sfx("soft");
-      void lunaSay(`הערפל סמיך מדי! קודם צריך להציל את ${chapters[i - 1].name.he}.`);
+      void lunaSay(L.fogChapter(chapters[i - 1]));
       return;
     }
     sfx("whoosh");

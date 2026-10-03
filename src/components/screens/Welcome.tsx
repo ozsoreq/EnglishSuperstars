@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import { useState } from "react";
 import { AVATARS } from "@/lib/catalog";
+import { L } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
 import { createProfile, selectProfile, useFamily, MAX_PROFILES } from "@/lib/store";
 import { Avatar } from "../Avatar";
@@ -61,7 +62,7 @@ export function NewExplorer({ onDone, onCancel }: { onDone: () => void; onCancel
           tone="gold"
           className="px-10 text-2xl"
           onClick={() => {
-            void lunaSay("שלום! אני לונה. בואו נצא יחד להרפתקה באי הצלילים!", "Hello! I'm Luna!");
+            void lunaSay(L.meetLuna());
             setStep("setup");
           }}
         >

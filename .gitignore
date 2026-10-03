@@ -7,3 +7,6 @@ next-env.d.ts
 .vercel
 coverage/
 !.env.example
+.cache/
+scripts/voice/lines.json
+__pycache__/
