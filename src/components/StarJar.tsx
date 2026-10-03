@@ -1,7 +1,7 @@
 "use client";
 /** The star jar with Pip the star. Fill shows progress toward the saving goal. */
-import { motion, useAnimationControls } from "motion/react";
-import { useEffect } from "react";
+import { m as motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { item } from "@/lib/catalog";
 import { balance } from "@/lib/ledger";
 import type { Profile } from "@/lib/store";
@@ -19,18 +19,27 @@ export function StarJar({ profile, compact = false }: { profile: Profile; compac
   const stars = balance(profile.ledger);
   const goal = goalFor(profile);
   const fill = Math.min(1, stars / goal.price);
-  const controls = useAnimationControls();
+  // Each landing star bumps a counter; the jar re-runs its wobble per bump.
+  const [bumps, setBumps] = useState(0);
 
   useEffect(() => {
-    const bump = () => void controls.start({ scale: [1, 1.18, 0.95, 1], rotate: [0, -6, 4, 0], transition: { duration: 0.45 } });
+    const bump = () => setBumps((n) => n + 1);
     window.addEventListener(JAR_BUMP, bump);
     return () => window.removeEventListener(JAR_BUMP, bump);
-  }, [controls]);
+  }, []);
 
   const h = compact ? 52 : 64;
   return (
     <div className="flex items-center gap-2" aria-label={`${stars} כוכבים`}>
-      <motion.div id="star-jar" animate={controls} className="relative" style={{ width: h * 0.85, height: h }}>
+      <motion.div
+        id="star-jar"
+        key={bumps}
+        initial={false}
+        animate={bumps ? { scale: [1, 1.18, 0.95, 1], rotate: [0, -6, 4, 0] } : undefined}
+        transition={{ duration: 0.45 }}
+        className="relative"
+        style={{ width: h * 0.85, height: h }}
+      >
         <svg viewBox="0 0 60 72" width="100%" height="100%" style={{ overflow: "visible" }}>
           <defs>
             <clipPath id="jar-clip">

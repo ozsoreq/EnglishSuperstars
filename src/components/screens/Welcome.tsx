@@ -1,6 +1,6 @@
 "use client";
 /** Profile picker (tap your explorer — no passwords for kids) and new-explorer setup. */
-import { motion } from "motion/react";
+import { m as motion } from "framer-motion";
 import { useState } from "react";
 import { AVATARS } from "@/lib/catalog";
 import { L } from "@/lib/lines";

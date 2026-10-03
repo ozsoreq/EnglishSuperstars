@@ -4,7 +4,7 @@
  * Where speech recognition isn't available (or the mic is blocked) it turns
  * into an "I said it!" button so the game never gets stuck.
  */
-import { motion } from "motion/react";
+import { m as motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { sfx, stopSpeaking } from "@/lib/audio";
 import { emit } from "@/lib/events";

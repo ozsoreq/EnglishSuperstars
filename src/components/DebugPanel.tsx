@@ -4,7 +4,7 @@
  * single game, preview every screen and overlay, and move through levels.
  * Debug actions change the active profile — use a test explorer.
  */
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m as motion } from "framer-motion";
 import { useState } from "react";
 import type { ActivityType, GameType } from "@/lib/content/types";
 import { ISLANDS } from "@/lib/content/islands";

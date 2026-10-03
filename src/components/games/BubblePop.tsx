@@ -1,8 +1,9 @@
 "use client";
 /** Bubble Pop (listening): hear a word, pop the bubble with the right picture. */
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, m as motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { WORDS } from "@/lib/content/words";
+import { useDebug } from "@/lib/debug";
 import { L } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
 import { Picture } from "../Picture";
@@ -24,6 +25,8 @@ export function BubblePop({ activity, onDone }: GameProps) {
   const [reveal, setReveal] = useState(false);
   const busy = useRef(false);
   const tracker = useTracker();
+  // Debug mode marks the answer so automated QA can play correctly.
+  const qa = useDebug();
   const { round, advance } = useRounds(rounds.length, () => onDone(tracker.result()));
   const reduce = useReducedMotion();
   // Bubbles from a finished round stay on screen while they animate out;
@@ -119,6 +122,7 @@ export function BubblePop({ activity, onDone }: GameProps) {
                 key={`${round}-${id}`}
                 type="button"
                 aria-label={WORDS[id].he}
+                data-qa={qa ? (id === target ? "answer" : "wrong") : undefined}
                 onClick={(e) => tap(id, e.currentTarget)}
                 className="absolute grid h-32 w-32 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full sm:h-36 sm:w-36"
                 style={{

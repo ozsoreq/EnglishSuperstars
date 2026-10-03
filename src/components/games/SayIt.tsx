@@ -3,7 +3,7 @@
  * Say It to Luna (speaking): hear the word, say it; Luna's ears perk up and
  * she repeats it back when recognised. Three tries, then "Great try!".
  */
-import { motion } from "motion/react";
+import { m as motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { WORDS } from "@/lib/content/words";
 import { L } from "@/lib/lines";

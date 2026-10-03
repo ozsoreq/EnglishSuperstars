@@ -11,7 +11,7 @@
  *  3. The device's own voice, preferring its "natural"/"enhanced" voices.
  * Every spoken line is also captioned on screen.
  */
-import { Howl } from "howler";
+import type { Howl } from "howler";
 import { LETTER_SOUNDS } from "./content/words";
 import { ttsUrl, voiceKey, type TtsKind, type TtsVoice } from "./tts";
 import { VOICE_PACK } from "./voice-pack";
@@ -133,7 +133,11 @@ function loadClip(url: string): Promise<string | null> {
   return p;
 }
 
-function playClip(src: string): Promise<boolean> {
+// Howler loads with the first clip rather than with the first screen.
+let howler: Promise<typeof import("howler")> | null = null;
+
+async function playClip(src: string): Promise<boolean> {
+  const { Howl } = await (howler ??= import("howler"));
   return new Promise((resolve) => {
     let settled = false;
     const howl = new Howl({ src: [src], format: ["mp3"] });

@@ -1,5 +1,5 @@
 "use client";
-import { motion, type HTMLMotionProps } from "motion/react";
+import { m as motion, type HTMLMotionProps } from "framer-motion";
 import { sfx } from "@/lib/audio";
 import { emojify } from "./Emoji";
 

@@ -10,6 +10,7 @@ npm run dev        # http://localhost:3000
 npm test           # unit tests: ledger, scheduler, missions, speech matching, streak
 npm run lint       # type-check
 npm run build
+npm run test:e2e   # Playwright end-to-end suite (phone + tablet); see docs/QA.md
 ```
 
 ## How it plays as an adventure
@@ -63,7 +64,7 @@ These are stand-ins for the full production stack in the spec. Each sits behind 
 
 For testing every stage and level without playing through:
 
-- **Turn it on** with `?debug=1` in the URL (it is remembered on that device), or in the parent area under **משפחה → מצב מפתחים**. Turn it off with `?debug=0` or from the panel.
+- **Turn it on** with `?debug=1` in the URL (asks for the parent gate first, then is remembered on that device), or in the parent area under **משפחה → מצב מפתחים**. Turn it off with `?debug=0` or from the panel.
 - **While on**, every stage on the map is unlocked, the daily time limit and bedtime are ignored, and quests show a **⏭ skip** button that completes the current step perfectly.
 - **The 🐞 panel** (bottom-left) offers:
   - **Stages**: for every stage, play the full quest as a first visit (with the story) or a revisit, or jump straight into any single game that stage supports. You can also mark a whole island restored or reset it. Islands 2–6 are listed as not built yet.

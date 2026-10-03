@@ -1,9 +1,10 @@
 "use client";
 /** b/d Detective (look-alike letters): sort floating letters into the right magnifying glass. */
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, m as motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { saySound } from "@/lib/audio";
 import { WORDS } from "@/lib/content/words";
+import { useDebug } from "@/lib/debug";
 import { L } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
 import { En } from "../En";
@@ -23,6 +24,7 @@ export function Detective({ onDone }: GameProps) {
   const [showTummy, setShowTummy] = useState(false);
   const busy = useRef(false);
   const tracker = useTracker();
+  const qa = useDebug();
   const { round, advance } = useRounds(rounds.length, () => onDone(tracker.result()));
   const reduce = useReducedMotion();
   const letter = rounds[round];
@@ -105,6 +107,7 @@ export function Detective({ onDone }: GameProps) {
             animate={{ x: wrong === i ? [0, -10, 10, -6, 6, 0] : 0 }}
             className="relative flex flex-col items-center"
             aria-label={`זכוכית מגדלת של ${WORDS[g.wordId].he}`}
+            data-qa={qa ? (g.letter === letter ? "answer" : "wrong") : undefined}
           >
             <span className="chunky grid h-32 w-32 place-items-center rounded-full bg-cream/90" style={{ borderRadius: 999, borderWidth: 8, borderColor: "#B9A7F5" }}>
               <span className="flex flex-col items-center">

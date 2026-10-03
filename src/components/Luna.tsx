@@ -4,7 +4,7 @@
  * thinking, hint, celebrate) driven by game events, drawn in SVG and
  * animated with springs. She looks toward where the child taps.
  */
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, m as motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { on, type LunaMood } from "@/lib/events";
 import { En } from "./En";

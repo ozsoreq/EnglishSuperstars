@@ -10,18 +10,22 @@
     "test": "vitest run",
     "emoji": "node scripts/sync-emoji.mjs",
     "voice:setup": "bash scripts/voice/setup.sh",
-    "voice": "tsx scripts/voice/collect.ts && .cache/voice/venv/bin/python scripts/voice/generate.py"
+    "voice": "tsx scripts/voice/collect.ts && .cache/voice/venv/bin/python scripts/voice/generate.py",
+    "test:e2e": "playwright test",
+    "test:e2e:dev": "E2E_DEV_URL=http://localhost:3000 playwright test e2e/dev-warnings.spec.ts --project tablet"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
+    "framer-motion": "^14.0.0",
     "howler": "^2.2.4",
-    "motion": "^14.0.0",
     "next": "^16.3.8",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@lobehub/fluent-emoji-3d": "^1.1.0",
+    "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/howler": "^2.2.13",
     "@types/node": "^26.6.4",

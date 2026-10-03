@@ -3,7 +3,7 @@
  * Celebrate in proportion: 1 = a sparkle, 2 = confetti, 3 = fireworks.
  * With prefers-reduced-motion it shrinks to a glow and a sound.
  */
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, m as motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { sfx } from "@/lib/audio";
 import { on } from "@/lib/events";

@@ -4,7 +4,7 @@
  * Each word is heard, said, then read (listen → say → read), and then it
  * flies into the scene and brings back a piece of the world.
  */
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, m as motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { sayWord, sfx } from "@/lib/audio";
 import { WORDS } from "@/lib/content/words";

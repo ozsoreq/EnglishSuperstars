@@ -1,6 +1,6 @@
 "use client";
 /** In-flow caption for everything Luna says (every spoken prompt is also written). */
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m as motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { on } from "@/lib/events";
 import { En } from "./En";

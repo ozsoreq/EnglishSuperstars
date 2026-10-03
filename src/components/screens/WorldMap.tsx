@@ -1,6 +1,6 @@
 "use client";
 /** The sea chart: six islands, one adventure each. The fog lifts island by island. */
-import { motion, useReducedMotion } from "motion/react";
+import { m as motion, useReducedMotion } from "framer-motion";
 import { sfx } from "@/lib/audio";
 import { ISLANDS } from "@/lib/content/islands";
 import { L } from "@/lib/lines";

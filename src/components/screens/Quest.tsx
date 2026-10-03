@@ -4,7 +4,7 @@
  * three challenges (warm-up, new words, practice), see the place restored,
  * open the treasure, then the star moment.
  */
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m as motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { preloadSpeech, sfx, stopSpeaking } from "@/lib/audio";
 import { WORDS } from "@/lib/content/words";
@@ -224,7 +224,7 @@ export function Quest({
         </div>
       )}
 
-      <main className="relative flex flex-1 flex-col items-center px-4 pb-24 pt-3">
+      <section className="relative flex flex-1 flex-col items-center px-4 pb-24 pt-3">
         <AnimatePresence mode="wait">
           {phase.kind === "arrive" && (
             <motion.section
@@ -333,7 +333,7 @@ export function Quest({
             />
           )}
         </AnimatePresence>
-      </main>
+      </section>
 
       {phase.kind === "play" && (
         <div className="pointer-events-none fixed bottom-2 start-2 z-30 sm:bottom-4 sm:start-4">

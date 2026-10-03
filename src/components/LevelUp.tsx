@@ -1,6 +1,6 @@
 "use client";
 /** Level-up: the avatar spins and a ribbon unfurls with the new level number. */
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m as motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { sfx } from "@/lib/audio";
 import { emit, on } from "@/lib/events";

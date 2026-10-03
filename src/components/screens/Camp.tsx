@@ -4,7 +4,7 @@
  * explorer gear, camp builds, pet companions (who learn English tricks),
  * and parent-defined real-world wishes.
  */
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m as motion } from "framer-motion";
 import { useState } from "react";
 import { sayWord, sfx } from "@/lib/audio";
 import { CAMP, GEAR, PETS, PET_FOOD_PRICE, PET_HAPPY_DAYS, PET_TRICKS, item, type ShopItem } from "@/lib/catalog";
@@ -171,7 +171,7 @@ function Shop({
                   <span style={{ direction: "ltr", display: "inline-block" }}>{it.price} ⭐</span>
                 </Btn>
                 {!canBuy && (
-                  <button type="button" className="min-h-10 text-sm text-cream/80 underline" onClick={() => onSave(it)}>
+                  <button type="button" className="min-h-14 text-sm text-cream/80 underline" onClick={() => onSave(it)}>
                     {saving ? <><Emoji e="🫙" /> חוסכים לזה</> : "לחסוך לזה"}
                   </button>
                 )}

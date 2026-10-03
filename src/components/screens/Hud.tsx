@@ -1,5 +1,5 @@
 "use client";
-import { motion } from "motion/react";
+import { m as motion } from "framer-motion";
 import { levelFor, starsForLevel, totalEarned } from "@/lib/ledger";
 import type { Profile } from "@/lib/store";
 import { Avatar } from "../Avatar";

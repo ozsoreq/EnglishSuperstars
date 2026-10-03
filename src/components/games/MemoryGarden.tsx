@@ -1,9 +1,10 @@
 "use client";
 /** Memory Garden (vocabulary): flip flower cards to match a picture with its English word. */
-import { motion } from "motion/react";
+import { m as motion } from "framer-motion";
 import { useMemo, useRef, useState } from "react";
 import { sfx } from "@/lib/audio";
 import { WORDS } from "@/lib/content/words";
+import { useDebug } from "@/lib/debug";
 import { emit } from "@/lib/events";
 import { En } from "../En";
 import { Picture } from "../Picture";
@@ -26,6 +27,7 @@ export function MemoryGarden({ activity, onDone }: GameProps) {
   const [matched, setMatched] = useState<string[]>([]);
   const lock = useRef(false);
   const tracker = useTracker();
+  const qa = useDebug();
   const mismatches = useRef(0);
 
   const flip = async (card: Card, el: HTMLElement) => {
@@ -80,6 +82,7 @@ export function MemoryGarden({ activity, onDone }: GameProps) {
               className="relative h-28 w-[6.5rem] sm:h-32 sm:w-28"
               style={{ perspective: 600 }}
               aria-label={shown ? (c.face === "word" ? w.en : w.he) : "פרח סגור"}
+              data-qa={qa ? c.wordId : undefined}
             >
               <motion.div
                 className="absolute inset-0"

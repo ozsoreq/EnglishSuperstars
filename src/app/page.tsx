@@ -1,5 +1,9 @@
 import { GameApp } from "@/components/GameApp";
 
 export default function Home() {
-  return <GameApp />;
+  return (
+    <main>
+      <GameApp />
+    </main>
+  );
 }

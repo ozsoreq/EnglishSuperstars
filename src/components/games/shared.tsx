@@ -1,5 +1,5 @@
 "use client";
-import { motion } from "motion/react";
+import { m as motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { sayWord, sfx } from "@/lib/audio";
 import type { Chapter } from "@/lib/content/types";

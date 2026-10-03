@@ -4,7 +4,7 @@
  * mastery; tap to hear it. Plus the treasure shelf and island trophies.
  * Comparisons are only with the child's own past.
  */
-import { motion } from "motion/react";
+import { m as motion } from "framer-motion";
 import { sayWord } from "@/lib/audio";
 import { ISLANDS } from "@/lib/content/islands";
 import { ALL_WORDS } from "@/lib/content/words";
@@ -91,7 +91,7 @@ export function Journal({ profile, onBack }: { profile: Profile; onBack: () => v
               const m = mastery(profile.memory[w.id]);
               if (m === "unseen") {
                 return (
-                  <div key={w.id} className="chunky grid h-28 place-items-center bg-white/5 text-3xl opacity-40" aria-label="מילה שעוד לא פגשתם">
+                  <div key={w.id} className="chunky grid h-28 place-items-center bg-white/5 text-3xl opacity-40" role="img" aria-label="מילה שעוד לא פגשתם">
                     <Emoji e="❔" />
                   </div>
                 );

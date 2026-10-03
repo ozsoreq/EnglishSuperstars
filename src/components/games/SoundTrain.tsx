@@ -4,10 +4,11 @@
  * First-sound rounds ("which sound starts 🍎?") then blending rounds
  * (c-a-b → "cab!"). The train chugs off when the word blends.
  */
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, m as motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { sfx, saySound, sayWord } from "@/lib/audio";
 import { WORDS } from "@/lib/content/words";
+import { useDebug } from "@/lib/debug";
 import { L } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
 import { En } from "../En";
@@ -50,6 +51,7 @@ export function SoundTrain({ activity, chapter, onDone }: GameProps) {
   const [hint, setHint] = useState(false);
   const busy = useRef(false);
   const tracker = useTracker();
+  const qa = useDebug();
   const { round, advance } = useRounds(rounds.length, () => onDone(tracker.result()));
   const reduce = useReducedMotion();
   const roundRef = useRef(round);
@@ -166,6 +168,7 @@ export function SoundTrain({ activity, chapter, onDone }: GameProps) {
                 exit={{ scale: 0, y: -40 }}
                 whileTap={{ scale: 0.9 }}
                 aria-label={`האות ${l}`}
+                data-qa={qa ? (l === needLetter ? "answer" : "wrong") : undefined}
               >
                 <En>{l}</En>
               </motion.button>

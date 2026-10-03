@@ -1,6 +1,6 @@
 "use client";
 /** Earned stars fly on an arc from the activity into the jar, chiming up the scale. */
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, m as motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { sfx } from "@/lib/audio";
 import { on } from "@/lib/events";

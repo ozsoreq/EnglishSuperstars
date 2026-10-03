@@ -4,7 +4,7 @@
  * emoji font, so every phone and tablet shows the same polished, glossy
  * pictures. Sized in `em` by default so surrounding font sizes still apply.
  */
-import { motion, useReducedMotion } from "motion/react";
+import { m as motion, useReducedMotion } from "framer-motion";
 import { Children, Fragment, isValidElement, cloneElement, type ReactNode } from "react";
 import { emojiSrc, splitEmoji } from "@/lib/emoji";
 

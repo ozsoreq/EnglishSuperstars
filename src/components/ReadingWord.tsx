@@ -3,7 +3,7 @@
  * An English word with the "reading finger": a sparkle that glides left to
  * right under the letters, guiding a right-to-left reader's eye.
  */
-import { motion, useReducedMotion } from "motion/react";
+import { m as motion, useReducedMotion } from "framer-motion";
 import { En } from "./En";
 import { Emoji } from "@/components/Emoji";
 

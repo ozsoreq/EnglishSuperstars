@@ -4,30 +4,47 @@
  * limit, and hosts the global overlays (star flight, celebrations, level-up).
  * Screen changes use the native View Transitions API where available.
  */
+import { LazyMotion } from "framer-motion";
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 import { flushSync } from "react-dom";
 import { setSound, setVoice, stopSpeaking } from "@/lib/audio";
 import { addPlaySeconds, selectProfile, timeGate, useFamily, useProfile } from "@/lib/store";
 import { Celebration } from "./Celebration";
-import { Goodnight } from "./Goodnight";
 import { LevelUp } from "./LevelUp";
 import { StarFlight } from "./StarFlight";
-import { Camp } from "./screens/Camp";
 import { IslandMap } from "./screens/IslandMap";
-import { Journal } from "./screens/Journal";
-import { ParentDashboard, ParentGate } from "./screens/Parent";
-import { Quest } from "./screens/Quest";
 import { NewExplorer, ProfilePicker } from "./screens/Welcome";
-import { WorldMap } from "./screens/WorldMap";
-import { DebugPanel } from "./DebugPanel";
-import { useDebug, type QuestOverride } from "@/lib/debug";
+import { cancelDebugRequest, setDebug, useDebug, useDebugRequest, type QuestOverride } from "@/lib/debug";
 import { Emoji } from "@/components/Emoji";
+
+// Only the map and onboarding are needed at start; everything else loads on
+// demand to keep the first load small (spec budget: < 200 KB gzipped JS).
+const Quest = dynamic(() => import("./screens/Quest").then((m) => m.Quest), { ssr: false });
+const Camp = dynamic(() => import("./screens/Camp").then((m) => m.Camp), { ssr: false });
+const Journal = dynamic(() => import("./screens/Journal").then((m) => m.Journal), { ssr: false });
+const WorldMap = dynamic(() => import("./screens/WorldMap").then((m) => m.WorldMap), { ssr: false });
+const ParentGate = dynamic(() => import("./screens/Parent").then((m) => m.ParentGate), { ssr: false });
+const ParentDashboard = dynamic(() => import("./screens/Parent").then((m) => m.ParentDashboard), { ssr: false });
+const Goodnight = dynamic(() => import("./Goodnight").then((m) => m.Goodnight), { ssr: false });
+const DebugPanel = dynamic(() => import("./DebugPanel").then((m) => m.DebugPanel), { ssr: false });
 
 type Screen = "map" | "world" | "quest" | "camp" | "journal" | "gate" | "parent" | "new";
 
 const TICK = 5;
 
+const loadMotion = () => import("@/lib/motion-features").then((m) => m.default);
+
+/** Components use `m` (aliased as `motion`); the engine streams in lazily. */
 export function GameApp() {
+  return (
+    <LazyMotion features={loadMotion} strict>
+      <App />
+    </LazyMotion>
+  );
+}
+
+function App() {
   const fam = useFamily();
   const profile = useProfile();
   const [mounted, setMounted] = useState(false);
@@ -36,6 +53,7 @@ export function GameApp() {
   const [greeted, setGreeted] = useState<string | null>(null);
   const [, setNow] = useState(0);
   const debug = useDebug();
+  const debugRequested = useDebugRequest();
   const [override, setOverride] = useState<QuestOverride | undefined>(undefined);
   const [launch, setLaunch] = useState(0);
   const [goodnightPreview, setGoodnightPreview] = useState<"limit" | "bedtime" | null>(null);
@@ -87,6 +105,11 @@ export function GameApp() {
       {profile && <LevelUp profile={profile} />}
     </>
   );
+
+  // `?debug=1` needs a grown-up: show the parent gate first.
+  if (debugRequested && !debug && fam.profiles.length > 0) {
+    return <ParentGate onPass={() => setDebug(true)} onCancel={cancelDebugRequest} />;
+  }
 
   if (screen === "gate") {
     return <ParentGate onPass={() => go("parent")} onCancel={() => go("map")} />;

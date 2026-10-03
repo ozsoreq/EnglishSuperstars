@@ -4,7 +4,7 @@
  * in Hebrew mode); every restored place glows in colour, the path unrolls as
  * missions complete, and fog hides what hasn't been reached yet.
  */
-import { motion, useReducedMotion } from "motion/react";
+import { m as motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { sfx } from "@/lib/audio";
 import { item } from "@/lib/catalog";
@@ -114,6 +114,7 @@ export function IslandMap({
 
   return (
     <div className="flex h-dvh flex-col">
+      <h1 className="sr-only">{isl.name.he}</h1>
       <Hud profile={profile} onNav={onNav} title={isl.name.he} />
 
       <div ref={scroller} className="relative flex-1 overflow-y-auto overflow-x-hidden">

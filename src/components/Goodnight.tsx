@@ -1,6 +1,6 @@
 "use client";
 /** The daily time cap ends calmly: a goodnight scene, and the stars stay safe in the jar. */
-import { motion } from "motion/react";
+import { m as motion } from "framer-motion";
 import { useEffect } from "react";
 import { sfx } from "@/lib/audio";
 import { L } from "@/lib/lines";

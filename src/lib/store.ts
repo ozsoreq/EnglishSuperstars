@@ -467,13 +467,28 @@ export function addPlaySeconds(n: number) {
 
 export type TimeGate = { ok: true; secondsLeft: number } | { ok: false; reason: "limit" | "bedtime" };
 
+/** Mornings start at 06:00; the quiet window runs from bedtime until then. */
+export const WAKE_MINUTES = 6 * 60;
+
+/**
+ * Whether it's bedtime. Handles bedtimes after midnight (e.g. "00:00" means
+ * quiet from midnight to 06:00, not all day). An unparsable bedtime means
+ * only the early-morning hours are quiet.
+ */
+export function inQuietHours(bedtime: string, minutesNow: number): boolean {
+  if (minutesNow < WAKE_MINUTES) return true;
+  const [h, m] = bedtime.split(":").map(Number);
+  const bed = h * 60 + m;
+  if (!Number.isFinite(bed) || bed < WAKE_MINUTES) return false;
+  return minutesNow >= bed;
+}
+
 export function timeGate(p: Profile, parent: ParentSettings, now = new Date()): TimeGate {
   const today = dayKey(now);
-  const [bh, bm] = parent.bedtime.split(":").map(Number);
   const minutesNow = now.getHours() * 60 + now.getMinutes();
   const extra = parent.extraMinutes[today] ?? 0;
-  if (!extra && minutesNow >= bh * 60 + bm) return { ok: false, reason: "bedtime" };
-  if (minutesNow < 6 * 60) return { ok: false, reason: "bedtime" };
+  // Extra minutes granted today also lift the bedtime for today.
+  if (!extra && inQuietHours(parent.bedtime, minutesNow)) return { ok: false, reason: "bedtime" };
   const limit = (parent.dailyMinutes + extra) * 60;
   const left = limit - (p.playSeconds[today] ?? 0);
   if (left <= 0) return { ok: false, reason: "limit" };
