@@ -407,6 +407,7 @@ function Privacy() {
         <ul className="list-disc space-y-1 ps-5">
           <li>זיהוי דיבור והקראה: מנוע הדיבור המובנה של הדפדפן/מערכת ההפעלה.</li>
           <li>גופנים: Google Fonts (נטענים פעם אחת בזמן הבנייה).</li>
+          <li>סטטיסטיקת ביקורים: Vercel Web Analytics — ללא עוגיות וללא זיהוי אישי.</li>
         </ul>
       </Card>
       <Card title="הנתונים שלכם">

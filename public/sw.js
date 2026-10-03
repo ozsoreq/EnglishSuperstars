@@ -19,7 +19,8 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET" || new URL(req.url).origin !== self.location.origin) return;
-  if (req.url.includes("/api/")) return;
+  // API calls and Vercel Analytics always go to the network.
+  if (req.url.includes("/api/") || req.url.includes("/_vercel/")) return;
 
   // Network first for navigations (fresh lessons), cache fallback offline.
   if (req.mode === "navigate") {

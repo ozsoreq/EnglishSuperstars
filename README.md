@@ -56,8 +56,14 @@ These are stand-ins for the full production stack in the spec. Each sits behind 
 - Letter Trace, Dress Up Doll, Snack Shop, Story Time and Sing Along
 - Fun Zone, gifts and friends, badges
 - Parent accounts (Auth.js/Clerk)
-- Analytics
+- First-party learning events (beyond Vercel's page-view analytics)
 - The weekly email summary
+
+## Analytics
+
+[Vercel Web Analytics](https://vercel.com/docs/analytics) is installed (`@vercel/analytics`; `<Analytics />` is in `src/app/layout.tsx`). It is cookieless and records anonymous page views only, with no third-party ad or tracking SDKs, which fits the spec's privacy rules. The service worker never caches `/_vercel/*`.
+
+To turn it on, open the project in the Vercel dashboard, go to **Analytics**, click **Enable**, and redeploy. Data appears after the next production visit. Locally the component does nothing. In development it only logs page views to the console.
 
 ## Layout
 
