@@ -14,6 +14,7 @@ import { dayKey } from "@/lib/dates";
 import { emit } from "@/lib/events";
 import { L } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
+import type { QuestOverride } from "@/lib/debug";
 import { buildMission, starsFor, type ActivityResult } from "@/lib/mission";
 import { completeActivity, completeMission, type MissionReward, type Profile } from "@/lib/store";
 import { Btn } from "../Btn";
@@ -52,12 +53,31 @@ const ROLE_NAMES = { warmup: "חימום", new: "מילים חדשות", practic
 
 type Phase = { kind: "arrive" } | { kind: "play"; step: number } | { kind: "restored" } | { kind: "stars" };
 
-export function Quest({ profile, chapterId, onExit, onCamp }: { profile: Profile; chapterId: string; onExit: () => void; onCamp: () => void }) {
+export function Quest({
+  profile,
+  chapterId,
+  onExit,
+  onCamp,
+  override,
+  debug = false,
+}: {
+  profile: Profile;
+  chapterId: string;
+  onExit: () => void;
+  onCamp: () => void;
+  /** Debug mode: play one specific activity, or force first visit / revisit. */
+  override?: QuestOverride;
+  debug?: boolean;
+}) {
   const { chapter, island } = findChapter(chapterId);
-  const visits = profile.visits[chapterId] ?? 0;
+  const realVisits = profile.visits[chapterId] ?? 0;
+  const visits = override?.visit === "first" ? 0 : override?.visit === "revisit" ? Math.max(1, realVisits) : realVisits;
   const [missionId] = useState(() => `${chapterId}:${Date.now().toString(36)}`);
   const activities = useMemo(
-    () => buildMission(chapter, profile.memory, dayKey(), visits),
+    () =>
+      override?.only
+        ? [{ type: override.only, role: override.only === "story" ? ("new" as const) : ("practice" as const), words: chapter.words }]
+        : buildMission(chapter, profile.memory, dayKey(), visits),
     // Build once per quest.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [missionId],
@@ -162,6 +182,23 @@ export function Quest({ profile, chapterId, onExit, onCamp }: { profile: Profile
             <Emoji e={chapter.landmark} /> {chapter.name.he}
           </h1>
         </div>
+        {debug && (phase.kind === "play" || phase.kind === "arrive") && (
+          <Btn
+            tone="lavender"
+            className="px-3 text-sm"
+            aria-label="Debug: skip this step"
+            onClick={() => {
+              stopSpeaking();
+              if (phase.kind === "arrive") setPhase({ kind: "play", step: 0 });
+              else {
+                const n = activities[phase.step].words.length;
+                void onActivityDone(phase.step, { firstTry: n, total: n, quality: {}, spoken: [] });
+              }
+            }}
+          >
+            ⏭ skip
+          </Btn>
+        )}
         <StarJar profile={profile} compact />
       </header>
 

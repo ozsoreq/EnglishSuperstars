@@ -11,6 +11,7 @@ import { item } from "@/lib/catalog";
 import { ISLANDS } from "@/lib/content/islands";
 import { emojiSrc } from "@/lib/emoji";
 import { L } from "@/lib/lines";
+import { useDebug } from "@/lib/debug";
 import { lunaSay } from "@/lib/luna";
 import { chapterUnlocked, type Profile } from "@/lib/store";
 import { Avatar } from "../Avatar";
@@ -57,6 +58,8 @@ export function IslandMap({
   onNav: (to: "camp" | "journal" | "world" | "parent" | "profiles") => void;
   greet: boolean;
 }) {
+  const debug = useDebug();
+  const unlocked = (i: number) => debug || chapterUnlocked(profile, 0, i);
   const isl = ISLANDS[0];
   const chapters = isl.chapters;
   const reduce = useReducedMotion();
@@ -94,7 +97,7 @@ export function IslandMap({
   const tapStop = async (i: number) => {
     if (walkTo !== null) return;
     const ch = chapters[i];
-    if (!chapterUnlocked(profile, 0, i)) {
+    if (!unlocked(i)) {
       sfx("soft");
       void lunaSay(L.fogChapter(chapters[i - 1]));
       return;
@@ -193,7 +196,7 @@ export function IslandMap({
           {chapters.map((c, i) => {
             const s = STOPS[i];
             const restored = (profile.visits[c.id] ?? 0) > 0;
-            const open = chapterUnlocked(profile, 0, i);
+            const open = unlocked(i);
             const isNext = i === nextIndex;
             return (
               <div

@@ -19,7 +19,7 @@ export interface Activity {
 }
 
 /** Games that work for a given set of words. */
-function gameFits(game: GameType, words: string[], chapter: Chapter): boolean {
+export function gameFits(game: GameType, words: string[], chapter: Chapter): boolean {
   switch (game) {
     case "train":
       return Boolean(chapter.letters?.length);

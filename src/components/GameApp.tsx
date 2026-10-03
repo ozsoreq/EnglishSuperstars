@@ -19,6 +19,8 @@ import { ParentDashboard, ParentGate } from "./screens/Parent";
 import { Quest } from "./screens/Quest";
 import { NewExplorer, ProfilePicker } from "./screens/Welcome";
 import { WorldMap } from "./screens/WorldMap";
+import { DebugPanel } from "./DebugPanel";
+import { useDebug, type QuestOverride } from "@/lib/debug";
 import { Emoji } from "@/components/Emoji";
 
 type Screen = "map" | "world" | "quest" | "camp" | "journal" | "gate" | "parent" | "new";
@@ -33,6 +35,10 @@ export function GameApp() {
   const [chapterId, setChapterId] = useState<string | null>(null);
   const [greeted, setGreeted] = useState<string | null>(null);
   const [, setNow] = useState(0);
+  const debug = useDebug();
+  const [override, setOverride] = useState<QuestOverride | undefined>(undefined);
+  const [launch, setLaunch] = useState(0);
+  const [goodnightPreview, setGoodnightPreview] = useState<"limit" | "bedtime" | null>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -57,7 +63,8 @@ export function GameApp() {
 
   const inParentArea = screen === "gate" || screen === "parent";
   const gate = profile ? timeGate(profile, fam.parent) : null;
-  const blocked = Boolean(profile && gate && !gate.ok && !inParentArea);
+  // Debug mode ignores the daily limit and bedtime.
+  const blocked = Boolean(profile && gate && !gate.ok && !inParentArea && !debug);
 
   // Count play time while a child is playing and the tab is visible.
   useEffect(() => {
@@ -120,7 +127,15 @@ export function GameApp() {
   switch (screen) {
     case "quest":
       body = chapterId ? (
-        <Quest key={chapterId} profile={profile} chapterId={chapterId} onExit={() => go("map")} onCamp={() => go("camp")} />
+        <Quest
+          key={`${chapterId}:${launch}`}
+          profile={profile}
+          chapterId={chapterId}
+          onExit={() => go("map")}
+          onCamp={() => go("camp")}
+          override={debug ? override : undefined}
+          debug={debug}
+        />
       ) : null;
       break;
     case "camp":
@@ -143,7 +158,9 @@ export function GameApp() {
           }}
           onEnter={(id) => {
             setGreeted(profile.id);
+            setOverride(undefined);
             setChapterId(id);
+            setLaunch((n) => n + 1);
             go("quest");
           }}
         />
@@ -155,6 +172,25 @@ export function GameApp() {
       {body}
       {overlays}
       {blocked && gate && !gate.ok && <Goodnight name={profile.name} reason={gate.reason} onParent={() => go("gate")} />}
+      {goodnightPreview && (
+        <div onClick={() => setGoodnightPreview(null)}>
+          <Goodnight name={profile.name} reason={goodnightPreview} onParent={() => setGoodnightPreview(null)} />
+        </div>
+      )}
+      {debug && (
+        <DebugPanel
+          profile={profile}
+          onPlay={(id, o) => {
+            setGreeted(profile.id);
+            setOverride(o);
+            setChapterId(id);
+            setLaunch((n) => n + 1);
+            go("quest");
+          }}
+          onScreen={(s) => go(s)}
+          onGoodnight={(reason) => setGoodnightPreview(reason)}
+        />
+      )}
     </>
   );
 }

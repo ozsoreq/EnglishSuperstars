@@ -22,6 +22,7 @@ import {
   MAX_PROFILES,
   type Profile,
 } from "@/lib/store";
+import { setDebug, useDebug } from "@/lib/debug";
 import { Avatar } from "../Avatar";
 import { Btn } from "../Btn";
 import { Emoji, EmojiText } from "@/components/Emoji";
@@ -371,6 +372,15 @@ function Rewards({ kid }: { kid: Profile }) {
 function Family({ onAddChild }: { onAddChild: () => void }) {
   const fam = useFamily();
   return (
+    <div className="flex flex-col gap-4">
+      <FamilyList onAddChild={onAddChild} fam={fam} />
+      <DevMode />
+    </div>
+  );
+}
+
+function FamilyList({ onAddChild, fam }: { onAddChild: () => void; fam: ReturnType<typeof useFamily> }) {
+  return (
     <Card title={`ילדים (עד ${MAX_PROFILES})`}>
       <ul className="mb-3 space-y-2">
         {fam.profiles.map((p) => (
@@ -395,6 +405,20 @@ function Family({ onAddChild }: { onAddChild: () => void }) {
           + הוספת ילד/ה
         </Btn>
       )}
+    </Card>
+  );
+}
+
+function DevMode() {
+  const debug = useDebug();
+  return (
+    <Card title="מצב מפתחים (Debug)">
+      <label className="flex items-center gap-3">
+        <input type="checkbox" checked={debug} onChange={(e) => setDebug(e.target.checked)} /> פתיחת כל השלבים, ביטול מגבלת הזמן ולוח בדיקות <Emoji e="🐞" />
+      </label>
+      <p className="mt-2 text-sm text-cream/70">
+        אפשר גם להוסיף <span dir="ltr">?debug=1</span> לכתובת. פעולות בדיקה משנות את הפרופיל הפעיל — עדיף להשתמש במגלה לבדיקות.
+      </p>
     </Card>
   );
 }

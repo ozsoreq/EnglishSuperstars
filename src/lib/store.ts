@@ -407,6 +407,57 @@ export function chapterUnlocked(p: Profile, islandIndex: number, chapterIndex: n
   return (p.visits[isl.chapters[chapterIndex - 1].id] ?? 0) > 0;
 }
 
+// ------------------------------------------------------------- debug
+
+/** Debug mode: mark every stage of an island restored (n = 1) or reset (n = 0). */
+export function debugSetIslandProgress(islandId: string, restored: boolean) {
+  const isl = ISLANDS.find((i) => i.id === islandId);
+  if (!isl) return;
+  updateActive((p) => {
+    const visits = { ...p.visits };
+    for (const c of isl.chapters) {
+      if (restored) visits[c.id] = Math.max(1, visits[c.id] ?? 0);
+      else delete visits[c.id];
+    }
+    return {
+      ...p,
+      visits,
+      location: restored ? isl.chapters[isl.chapters.length - 1].id : isl.chapters[0].id,
+      islandsDone: restored ? [...new Set([...p.islandsDone, isl.id])] : p.islandsDone.filter((x) => x !== isl.id),
+    };
+  });
+}
+
+export function debugAddStars(amount: number) {
+  grant("debug", Math.max(1, Math.round(amount)), `debug:${Date.now()}:${Math.random()}`);
+}
+
+/** Add exactly enough lifetime stars to reach a level. */
+export function debugReachLevel(level: number) {
+  const need = 10 * (Math.min(50, Math.max(1, level)) - 1) ** 2 - totalEarned(active().ledger);
+  if (need > 0) debugAddStars(need);
+}
+
+export function debugResetProgress() {
+  updateActive((p) => ({
+    ...p,
+    ledger: [],
+    memory: {},
+    visits: {},
+    location: ISLANDS[0].chapters[0].id,
+    islandsDone: [],
+    streak: EMPTY_STREAK,
+    owned: [],
+    equipped: {},
+    pets: [],
+    activePet: undefined,
+    savingGoal: undefined,
+    playSeconds: {},
+    requests: [],
+    levelSeen: 1,
+  }));
+}
+
 // ------------------------------------------------------------- time
 
 export function addPlaySeconds(n: number) {

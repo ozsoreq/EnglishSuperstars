@@ -59,6 +59,20 @@ These are stand-ins for the full production stack in the spec. Each sits behind 
 - First-party learning events (beyond Vercel's page-view analytics)
 - The weekly email summary
 
+## Debug mode
+
+For testing every stage and level without playing through:
+
+- **Turn it on** with `?debug=1` in the URL (it is remembered on that device), or in the parent area under **משפחה → מצב מפתחים**. Turn it off with `?debug=0` or from the panel.
+- **While on**, every stage on the map is unlocked, the daily time limit and bedtime are ignored, and quests show a **⏭ skip** button that completes the current step perfectly.
+- **The 🐞 panel** (bottom-left) offers:
+  - **Stages**: for every stage, play the full quest as a first visit (with the story) or a revisit, or jump straight into any single game that stage supports. You can also mark a whole island restored or reset it. Islands 2–6 are listed as not built yet.
+  - **Levels & stars**: reach any level 1–50 (adds exactly the stars needed), preview the level-up animation, or add stars.
+  - **Screens & effects**: island map, sea chart, camp, journal, parent area, onboarding, both goodnight screens, and the three celebration sizes and star flight.
+  - **Profile**: create a test explorer, or reset the current profile.
+
+Debug actions change the active profile. Stars they add are labelled `debug` in the ledger, but it's best to use a test explorer.
+
 ## Voice
 
 Luna's voice is pre-recorded with natural neural voices and shipped as small MP3s in `public/voice/` (~2 MB). Playback needs no API key and costs nothing, and the files are cached for offline play. The app plays, best first:

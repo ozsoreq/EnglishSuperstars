@@ -19,7 +19,8 @@ export type EarnReason =
   | "island"
   | "weekly"
   | "parent"
-  | "refund";
+  | "refund"
+  | "debug";
 
 interface Rule {
   min: number;
@@ -40,6 +41,8 @@ export const EARN_RULES: Record<EarnReason, Rule> = {
   weekly: { min: 15, max: 15, capped: true, lifetime: true },
   parent: { min: 1, max: 500, capped: false, lifetime: true },
   refund: { min: 1, max: 10_000, capped: false, lifetime: false },
+  /** Developer debug mode only (labelled so it can be told apart). */
+  debug: { min: 1, max: 100_000, capped: false, lifetime: true },
 };
 
 export interface LedgerEntry {
