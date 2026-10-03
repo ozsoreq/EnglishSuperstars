@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { sfx, stopSpeaking } from "@/lib/audio";
 import { emit } from "@/lib/events";
 import { canListen, listenFor, stopListening } from "@/lib/listen";
+import { Emoji } from "@/components/Emoji";
 
 export type MicOutcome = { matched: boolean; recognized: boolean };
 
@@ -43,7 +44,7 @@ export function MicButton({
           onResult({ matched: true, recognized: false });
         }}
       >
-        🗣️ אמרתי!
+        <Emoji e="🗣️" /> אמרתי!
       </motion.button>
     );
   }
@@ -85,7 +86,7 @@ export function MicButton({
         className="chunky relative grid place-items-center rounded-full bg-mint text-4xl disabled:opacity-50"
         style={{ width: size, height: size, borderRadius: "999px" }}
       >
-        {listening ? "👂" : "🎤"}
+        <Emoji e={listening ? "👂" : "🎤"} anim={listening ? "breathe" : undefined} />
       </motion.button>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "motion/react";
-import { useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { sayWord, sfx } from "@/lib/audio";
 import type { Chapter } from "@/lib/content/types";
 import { ALL_WORDS, WORDS } from "@/lib/content/words";
@@ -8,6 +8,7 @@ import { emit } from "@/lib/events";
 import { lunaSay } from "@/lib/luna";
 import type { Activity, ActivityResult } from "@/lib/mission";
 import type { Quality } from "@/lib/srs";
+import { Emoji } from "@/components/Emoji";
 
 export interface GameProps {
   activity: Activity;
@@ -88,8 +89,9 @@ export function nudge(wordId: string | undefined, attempt: number, hintHe?: stri
   if (hintHe) void lunaSay(hintHe);
 }
 
-export async function hearWord(wordId: string) {
-  await sayWord(WORDS[wordId]?.en ?? wordId);
+/** Play a word. Speaking games use the child voice so the model sounds like a friend. */
+export async function hearWord(wordId: string, voice: "guide" | "child" = "guide") {
+  await sayWord(WORDS[wordId]?.en ?? wordId, voice);
 }
 
 /** Round pips, filled right-to-left in Hebrew mode. */
@@ -119,9 +121,44 @@ export function SpeakerButton({ onClick, label = "להקשיב שוב" }: { onCl
         onClick();
       }}
     >
-      🔊
+      <Emoji e="🔊" />
     </motion.button>
   );
+}
+
+/**
+ * Round state that advances exactly once per round and reports completion
+ * exactly once — so a double tap can't skip past the last round and leave
+ * the game blank, and an empty round list still completes.
+ */
+export function useRounds(total: number, onFinish: () => void) {
+  const [round, setRound] = useState(0);
+  const advanced = useRef(-1);
+  const finished = useRef(false);
+  const finishRef = useRef(onFinish);
+  finishRef.current = onFinish;
+
+  const finish = useCallback(() => {
+    if (finished.current) return;
+    finished.current = true;
+    finishRef.current();
+  }, []);
+
+  const advance = useCallback(
+    (from: number) => {
+      if (advanced.current >= from) return;
+      advanced.current = from;
+      if (from + 1 >= total) finish();
+      else setRound(from + 1);
+    },
+    [total, finish],
+  );
+
+  useEffect(() => {
+    if (round >= total) finish();
+  }, [round, total, finish]);
+
+  return { round, advance };
 }
 
 /** Small wait helper for pacing between rounds. */

@@ -6,7 +6,8 @@
  */
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { sfx, stopSpeaking } from "@/lib/audio";
+import { preloadSpeech, sfx, stopSpeaking } from "@/lib/audio";
+import { WORDS } from "@/lib/content/words";
 import { findChapter } from "@/lib/content/islands";
 import type { ActivityType } from "@/lib/content/types";
 import { dayKey } from "@/lib/dates";
@@ -26,6 +27,7 @@ import { SayIt } from "../games/SayIt";
 import { SoundTrain } from "../games/SoundTrain";
 import { StoryMoment } from "../games/StoryMoment";
 import type { GameProps } from "../games/shared";
+import { Emoji } from "@/components/Emoji";
 
 const GAMES: Record<ActivityType, (p: GameProps) => React.ReactNode> = {
   bubble: BubblePop,
@@ -71,6 +73,17 @@ export function Quest({ profile, chapterId, onExit, onCamp }: { profile: Profile
 
   useEffect(() => () => stopSpeaking(), []);
 
+  // Warm up the voice for this quest so prompts play without a pause.
+  useEffect(() => {
+    const words = [...new Set(activities.flatMap((a) => a.words))].map((id) => WORDS[id]?.en).filter(Boolean) as string[];
+    preloadSpeech([
+      { text: chapter.problem.he, lang: "he" },
+      { text: chapter.problem.en, lang: "en" },
+      ...words.map((w) => ({ text: w, lang: "en" as const, kind: "word" as const })),
+      ...activities.map((a) => ({ text: chapter.gameIntro[a.type as keyof typeof chapter.gameIntro] ?? "", lang: "he" as const })).filter((x) => x.text),
+    ]);
+  }, [activities, chapter]);
+
   // Arrival: Luna tells the problem.
   useEffect(() => {
     if (phase.kind !== "arrive") return;
@@ -88,7 +101,10 @@ export function Quest({ profile, chapterId, onExit, onCamp }: { profile: Profile
     if (a.type !== "story") void lunaSay(chapter.gameIntro[a.type] ?? undefined);
   }, [phase, activities, chapter]);
 
+  const handledSteps = useRef(new Set<number>());
   const onActivityDone = async (step: number, result: ActivityResult) => {
+    if (handledSteps.current.has(step)) return;
+    handledSteps.current.add(step);
     const r = completeActivity(missionId, step, result);
     const total = r.stars + r.speakStars + r.masteredStars;
     setEarned((e) => e + total);
@@ -137,12 +153,12 @@ export function Quest({ profile, chapterId, onExit, onCamp }: { profile: Profile
       {/* Header */}
       <header className="flex items-center justify-between gap-2 px-4 pt-[max(env(safe-area-inset-top),12px)]">
         <Btn tone="ghost" onClick={exit} aria-label="חזרה למפה" className="text-2xl">
-          🗺️
+          <Emoji e="🗺️" />
         </Btn>
         <div className="flex flex-1 flex-col items-center">
           <span className="text-sm text-cream/70">{chapter.quest}</span>
           <h1 className="text-xl font-bold">
-            {chapter.landmark} {chapter.name.he}
+            <Emoji e={chapter.landmark} /> {chapter.name.he}
           </h1>
         </div>
         <StarJar profile={profile} compact />
@@ -161,7 +177,7 @@ export function Quest({ profile, chapterId, onExit, onCamp }: { profile: Profile
                   transition={{ duration: 2, repeat: state === "now" ? Infinity : 0 }}
                   title={ROLE_NAMES[a.role]}
                 >
-                  {state === "done" ? "⭐" : GAME_NAMES[a.type].icon}
+                  <Emoji e={state === "done" ? "⭐" : GAME_NAMES[a.type].icon} anim={state === "now" ? "breathe" : undefined} />
                 </motion.div>
                 {i < activities.length - 1 && <span className="h-1 w-6 rounded bg-white/25" />}
               </div>
@@ -185,7 +201,7 @@ export function Quest({ profile, chapterId, onExit, onCamp }: { profile: Profile
                 animate={{ filter: firstVisit ? "grayscale(1) brightness(0.7)" : "grayscale(0)", y: [0, -6, 0] }}
                 transition={{ y: { duration: 5, repeat: Infinity } }}
               >
-                {chapter.landmark}
+                <Emoji e={chapter.landmark} size="1em" />
               </motion.div>
               <div className="max-w-md">
                 <p className="text-xl leading-relaxed">{firstVisit ? chapter.problem.he : `חזרנו ל${chapter.name.he}!`}</p>
@@ -210,7 +226,7 @@ export function Quest({ profile, chapterId, onExit, onCamp }: { profile: Profile
             >
               <Caption className="mb-1 w-full" />
               <div className="mb-2 flex items-center gap-2 text-lg font-bold text-mint">
-                <span>{GAME_NAMES[activities[phase.step].type].icon}</span>
+                <Emoji e={GAME_NAMES[activities[phase.step].type].icon} />
                 <span>{GAME_NAMES[activities[phase.step].type].he}</span>
                 <span className="text-sm font-normal text-cream/60">· {ROLE_NAMES[activities[phase.step].role]}</span>
               </div>
@@ -248,7 +264,7 @@ export function Quest({ profile, chapterId, onExit, onCamp }: { profile: Profile
                   transition={{ delay: 1, type: "spring", stiffness: 200, damping: 12 }}
                 >
                   <motion.span className="text-5xl" animate={{ rotate: [0, -12, 12, 0] }} transition={{ delay: 1.6, duration: 0.8 }}>
-                    {chapter.treasure.emoji}
+                    <Emoji e={chapter.treasure.emoji} size="1em" />
                   </motion.span>
                   <div className="text-start">
                     <div className="text-sm">מצאתם אוצר!</div>
@@ -336,35 +352,41 @@ function StarMoment({
             animate={{ scale: 1 }}
             transition={{ delay: 0.2 + i * 0.25, type: "spring" }}
           >
-            {"⭐".repeat(n)}
-            <span className="opacity-25">{"⭐".repeat(3 - n)}</span>
+            {Array.from({ length: n }, (_, k) => (
+              <Emoji key={k} e="⭐" />
+            ))}
+            <span className="opacity-25 grayscale">
+              {Array.from({ length: 3 - n }, (_, k) => (
+                <Emoji key={k} e="⭐" />
+              ))}
+            </span>
           </motion.div>
         ))}
       </div>
       <div className="text-5xl font-black text-gold glow-gold" style={{ direction: "ltr" }}>
-        +{earned} ⭐
+        +{earned} <Emoji e="⭐" anim="spin" />
       </div>
       <ul className="space-y-1 text-lg">
         {reward.missionBonus > 0 && (
           <li>
-            🎯 בונוס משימה יומית: <Plus n={reward.missionBonus} />
+            <Emoji e="🎯" /> בונוס משימה יומית: <Plus n={reward.missionBonus} />
           </li>
         )}
         {reward.streakBonus > 0 && (
           <li>
-            🔥 רצף של {reward.streakCount} ימים: <Plus n={reward.streakBonus} />
-            {reward.usedSnowDay && " (יום שלג ❄️ שמר על הרצף)"}
+            <Emoji e="🔥" /> רצף של {reward.streakCount} ימים: <Plus n={reward.streakBonus} />
+            {reward.usedSnowDay && <> (יום שלג <Emoji e="❄️" /> שמר על הרצף)</>}
           </li>
         )}
         {reward.islandBonus > 0 && (
           <li>
-            {trophy} סיימתם את האי: <Plus n={reward.islandBonus} />
+            <Emoji e={trophy} /> סיימתם את האי: <Plus n={reward.islandBonus} />
           </li>
         )}
       </ul>
       {reward.streakBonus > 0 && (
         <motion.div className="text-6xl" animate={{ scale: [1, 1.25, 1] }} transition={{ duration: 1.2, repeat: 2 }}>
-          🔥
+          <Emoji e="🔥" />
         </motion.div>
       )}
       <Luna size={120} bubble bubbleSide="top" />

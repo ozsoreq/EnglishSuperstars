@@ -8,6 +8,7 @@ import { emit } from "@/lib/events";
 import { En } from "../En";
 import { Picture } from "../Picture";
 import { cheer, hearWord, shuffle, useTracker, wait, type GameProps } from "./shared";
+import { Emoji } from "@/components/Emoji";
 
 interface Card {
   key: string;
@@ -90,7 +91,7 @@ export function MemoryGarden({ activity, onDone }: GameProps) {
                   className="chunky absolute inset-0 grid place-items-center bg-coral text-4xl"
                   style={{ backfaceVisibility: "hidden" }}
                 >
-                  🌷
+                  <Emoji e="🌷" />
                 </div>
                 <div
                   className={`chunky absolute inset-0 grid place-items-center ${matched.includes(c.wordId) ? "bg-gold" : "bg-cream"} text-night-deep`}

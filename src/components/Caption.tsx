@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { on } from "@/lib/events";
 import { En } from "./En";
+import { Emoji } from "@/components/Emoji";
 
 export function Caption({ className = "" }: { className?: string }) {
   const [caption, setCaption] = useState<{ he?: string; en?: string } | null>(null);
@@ -35,7 +36,7 @@ export function Caption({ className = "" }: { className?: string }) {
             className="flex max-w-xl items-center gap-2 rounded-3xl border-[3px] border-night-deep bg-cream px-4 py-2 text-night-deep"
           >
             <span className="text-2xl" aria-hidden>
-              🦊
+              <Emoji e="🦊" />
             </span>
             <span>
               {caption.he && <span className="block font-medium leading-snug">{caption.he}</span>}

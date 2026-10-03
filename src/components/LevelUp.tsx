@@ -6,6 +6,7 @@ import { sfx } from "@/lib/audio";
 import { emit, on } from "@/lib/events";
 import type { Profile } from "@/lib/store";
 import { Avatar } from "./Avatar";
+import { Emoji } from "@/components/Emoji";
 
 export function LevelUp({ profile }: { profile: Profile }) {
   const [level, setLevel] = useState<number | null>(null);
@@ -43,7 +44,7 @@ export function LevelUp({ profile }: { profile: Profile }) {
               animate={{ clipPath: "inset(0 0% 0 0%)" }}
               transition={{ delay: 1, duration: 0.7, ease: "easeOut" }}
             >
-              רמה {level}! 🎀
+              רמה {level}! <Emoji e="🎀" anim="wiggle" />
             </motion.div>
           </div>
         </motion.div>

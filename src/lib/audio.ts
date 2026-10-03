@@ -2,11 +2,19 @@
 /**
  * Sound and voice.
  *
- * SFX are synthesised with Web Audio so the prototype ships without asset
- * files (short, soft, never a buzzer). Voice uses the browser's speech
- * synthesis as the fallback the spec allows until voice-actor recordings
- * exist; every spoken line is also captioned on screen.
+ * SFX are synthesised with Web Audio (short, soft, never a buzzer).
+ *
+ * Voice is neural first: /api/tts returns natural Azure AI Speech audio
+ * (Hebrew guide, warm English guide, English child voice, exact letter
+ * sounds), played through Howler.js. If the route isn't configured or the
+ * device is offline with nothing cached, it falls back to the best voice the
+ * device has (preferring its "natural"/"enhanced" voices). Every spoken line
+ * is also captioned on screen.
  */
+import { Howl } from "howler";
+import { LETTER_SOUNDS } from "./content/words";
+import { ttsUrl, type TtsKind, type TtsVoice } from "./tts";
+
 
 let ctx: AudioContext | null = null;
 let soundOn = true;
@@ -92,43 +100,108 @@ export function sfx(name: Sfx, step = 0) {
 
 // ---------------------------------------------------------------- voice
 
-function voices(): SpeechSynthesisVoice[] {
+type Lang = "en" | "he";
+
+/** "off" once the server says neural TTS isn't configured (for this session). */
+let neural: "unknown" | "on" | "off" = "unknown";
+const clips = new Map<string, Promise<string | null>>();
+let current: Howl | null = null;
+let generation = 0;
+
+function loadClip(url: string): Promise<string | null> {
+  if (neural === "off" || typeof window === "undefined") return Promise.resolve(null);
+  let p = clips.get(url);
+  if (!p) {
+    // A slow network falls back to the device voice instead of a long silence.
+    p = fetch(url, { signal: AbortSignal.timeout(4000) })
+      .then(async (res) => {
+        if (res.status === 501) {
+          neural = "off";
+          return null;
+        }
+        if (!res.ok) return null;
+        neural = "on";
+        return URL.createObjectURL(await res.blob());
+      })
+      .catch(() => null);
+    clips.set(url, p);
+    void p.then((v) => {
+      if (!v) clips.delete(url);
+    });
+  }
+  return p;
+}
+
+function playClip(src: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const howl = new Howl({ src: [src], format: ["mp3"] });
+    const finish = (ok: boolean) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      howl.unload();
+      if (current === howl) current = null;
+      resolve(ok);
+    };
+    const timer = setTimeout(() => finish(true), 20_000);
+    howl.once("end", () => finish(true));
+    howl.once("stop", () => finish(true));
+    howl.once("loaderror", () => finish(false));
+    howl.once("playerror", () => finish(false));
+    current = howl;
+    howl.play();
+  });
+}
+
+function deviceVoices(): SpeechSynthesisVoice[] {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return [];
   return window.speechSynthesis.getVoices();
 }
 
-function pickVoice(lang: "en" | "he"): SpeechSynthesisVoice | undefined {
-  const all = voices();
-  if (lang === "he") return all.find((v) => v.lang.toLowerCase().startsWith("he") || v.lang.toLowerCase().startsWith("iw"));
-  const en = all.filter((v) => v.lang.toLowerCase().startsWith("en"));
-  return (
-    en.find((v) => /samantha|female|aria|jenny|zira|google us english/i.test(v.name)) ??
-    en.find((v) => v.lang === "en-US") ??
-    en[0]
-  );
+/** Prefer the device's most natural voices over the robotic defaults. */
+function voiceScore(v: SpeechSynthesisVoice): number {
+  const n = v.name.toLowerCase();
+  let s = 0;
+  if (/natural|neural/.test(n)) s += 60;
+  if (/premium|enhanced/.test(n)) s += 45;
+  if (/online/.test(n)) s += 20;
+  if (/google/.test(n)) s += 15;
+  if (/jenny|aria|ava|samantha|allison|karen|moira|tessa|hila|carmit/.test(n)) s += 10;
+  if (/compact|espeak|robot/.test(n)) s -= 40;
+  if (v.lang === "en-US" || v.lang === "he-IL") s += 5;
+  return s;
 }
 
-export function canSpeak(lang: "en" | "he"): boolean {
+function pickDeviceVoice(lang: Lang): SpeechSynthesisVoice | undefined {
+  const prefix = lang === "he" ? ["he", "iw"] : ["en"];
+  return deviceVoices()
+    .filter((v) => prefix.some((p) => v.lang.toLowerCase().startsWith(p)))
+    .sort((a, b) => voiceScore(b) - voiceScore(a))[0];
+}
+
+export function canSpeak(lang: Lang): boolean {
+  if (neural === "on") return true;
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
-  if (lang === "en") return true;
-  return Boolean(pickVoice("he"));
+  return lang === "en" || Boolean(pickDeviceVoice("he"));
 }
 
 export function stopSpeaking() {
+  generation += 1;
+  current?.stop();
   if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
 }
 
-/** Speak one line. Resolves when finished (or after a safety timeout). */
-export function speak(text: string, lang: "en" | "he", opts: { rate?: number } = {}): Promise<void> {
+function deviceSpeak(text: string, lang: Lang, rate: number): Promise<void> {
   return new Promise((resolve) => {
-    if (!voiceOn || typeof window === "undefined" || !("speechSynthesis" in window) || !text) return resolve();
-    const voice = pickVoice(lang);
+    if (typeof window === "undefined" || !("speechSynthesis" in window) || !text) return resolve();
+    const voice = pickDeviceVoice(lang);
     if (lang === "he" && !voice) return resolve(); // Caption still shows.
     const u = new SpeechSynthesisUtterance(text);
     u.lang = lang === "he" ? "he-IL" : "en-US";
     if (voice) u.voice = voice;
-    u.rate = opts.rate ?? (lang === "en" ? 0.8 : 1);
-    u.pitch = 1.1;
+    u.rate = rate;
+    u.pitch = 1.05;
     const done = () => {
       clearTimeout(timer);
       resolve();
@@ -140,16 +213,58 @@ export function speak(text: string, lang: "en" | "he", opts: { rate?: number } =
   });
 }
 
-/** Speak an English word clearly (slower). */
-export function sayWord(en: string): Promise<void> {
-  return speak(en, "en", { rate: 0.7 });
+interface SpeakOptions {
+  kind?: TtsKind;
+  voice?: TtsVoice;
+  /** What the device voice says if neural audio isn't available. */
+  fallbackText?: string;
+  /** Device-voice rate. */
+  rate?: number;
 }
 
-export async function speakLines(lines: { text: string; lang: "en" | "he" }[]) {
+/**
+ * Speak one line. Resolves when finished, interrupted, or after a cap —
+ * games await speech between steps, so a stalled network fetch or audio
+ * engine must never freeze a game.
+ */
+export function speak(text: string, lang: Lang, opts: SpeakOptions = {}): Promise<void> {
+  const cap = 6000 + text.length * 150;
+  return Promise.race([speakNow(text, lang, opts), new Promise<void>((r) => setTimeout(r, cap))]);
+}
+
+async function speakNow(text: string, lang: Lang, opts: SpeakOptions): Promise<void> {
+  if (!voiceOn || !text) return;
+  const my = ++generation;
+  const kind = opts.kind ?? "line";
+  const src = await loadClip(ttsUrl({ text, lang, kind, voice: opts.voice ?? "guide" }));
+  if (my !== generation) return;
+  current?.stop(); // never talk over ourselves
+  if (src && (await playClip(src))) return;
+  if (my !== generation) return;
+  await deviceSpeak(opts.fallbackText ?? text, lang, opts.rate ?? (kind === "line" ? (lang === "en" ? 0.85 : 1) : 0.7));
+}
+
+/** Speak an English word clearly. The child voice models words for the child to copy. */
+export function sayWord(en: string, voice: TtsVoice = "guide"): Promise<void> {
+  return speak(en, "en", { kind: "word", voice });
+}
+
+/** A letter's sound (not its name), e.g. "b" → /bə/. */
+export function saySound(letter: string): Promise<void> {
+  return speak(letter, "en", { kind: "sound", fallbackText: LETTER_SOUNDS[letter] ?? letter });
+}
+
+/** Warm the cache for lines and words coming up next (no-op without neural TTS). */
+export function preloadSpeech(items: { text: string; lang: Lang; kind?: TtsKind; voice?: TtsVoice }[]) {
+  if (!voiceOn || neural === "off") return;
+  for (const i of items) void loadClip(ttsUrl({ text: i.text, lang: i.lang, kind: i.kind ?? "line", voice: i.voice ?? "guide" }));
+}
+
+export async function speakLines(lines: { text: string; lang: Lang }[]) {
   for (const l of lines) await speak(l.text, l.lang);
 }
 
-// Voices load asynchronously in Chrome.
+// Device voices load asynchronously in Chrome.
 if (typeof window !== "undefined" && "speechSynthesis" in window) {
-  window.speechSynthesis.onvoiceschanged = () => voices();
+  window.speechSynthesis.onvoiceschanged = () => deviceVoices();
 }

@@ -8,6 +8,7 @@ import type { Profile } from "@/lib/store";
 import { Btn } from "../Btn";
 import { En } from "../En";
 import { Luna } from "../Luna";
+import { Emoji } from "@/components/Emoji";
 
 const SPOTS = [
   { x: 78, y: 80 },
@@ -24,7 +25,7 @@ export function WorldMap({ profile, onIsland, onBack }: { profile: Profile; onIs
     <div className="flex min-h-dvh flex-col">
       <header className="flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top),12px)]">
         <Btn tone="ghost" onClick={onBack} className="text-2xl" aria-label="חזרה">
-          ➜
+          <Emoji e="➜" />
         </Btn>
         <h1 className="text-2xl font-bold">מפת הים</h1>
         <span className="w-14" />
@@ -67,8 +68,12 @@ export function WorldMap({ profile, onIsland, onBack }: { profile: Profile; onIs
                   animate={reduce ? {} : { y: [0, -4, 0] }}
                   transition={{ duration: 4 + i, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  {isl.friend.emoji}
-                  {done && <span className="absolute -top-3 text-2xl">🏆</span>}
+                  <Emoji e={isl.friend.emoji} size="1em" anim={isl.playable ? "wiggle" : undefined} />
+                  {done && (
+                    <span className="absolute -top-3 text-2xl">
+                      <Emoji e="🏆" anim="wiggle" />
+                    </span>
+                  )}
                 </motion.span>
                 <span className="mt-1 rounded-full bg-night-deep/80 px-2 text-sm font-bold">{isl.name.he}</span>
                 <En className="text-xs text-cream/70">{isl.name.en}</En>
@@ -78,7 +83,7 @@ export function WorldMap({ profile, onIsland, onBack }: { profile: Profile; onIs
                     animate={reduce ? {} : { x: [-5, 5, -5] }}
                     transition={{ duration: 8, repeat: Infinity }}
                   >
-                    ☁️
+                    <Emoji e="☁️" />
                   </motion.span>
                 )}
               </motion.button>

@@ -8,6 +8,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { on, type LunaMood } from "@/lib/events";
 import { En } from "./En";
+import { emojiSrc } from "@/lib/emoji";
 
 const ORANGE = "#F2914A";
 const ORANGE_DARK = "#D9732E";
@@ -191,14 +192,10 @@ export function Luna({
           </g>
         )}
         {mood === "hint" && (
-          <text x="150" y="40" fontSize="30">
-            💡
-          </text>
+          <image href={emojiSrc("💡") ?? undefined} x="148" y="8" width="38" height="38" />
         )}
         {mood === "thinking" && (
-          <text x="146" y="44" fontSize="26">
-            💭
-          </text>
+          <image href={emojiSrc("💭") ?? undefined} x="144" y="10" width="36" height="36" />
         )}
       </motion.svg>
 

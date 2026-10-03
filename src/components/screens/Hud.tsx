@@ -4,6 +4,7 @@ import { levelFor, starsForLevel, totalEarned } from "@/lib/ledger";
 import type { Profile } from "@/lib/store";
 import { Avatar } from "../Avatar";
 import { StarJar } from "../StarJar";
+import { Emoji } from "@/components/Emoji";
 
 /** Top bar: explorer + level, streak flame, star jar, and the grown-ups' lock. */
 export function Hud({
@@ -40,13 +41,13 @@ export function Hud({
       <div className="flex items-center gap-3">
         <span className="flex items-center gap-1 text-lg font-bold" title="רצף ימים">
           <motion.span animate={{ scale: streak ? [1, 1.15, 1] : 1 }} transition={{ duration: 2.5, repeat: Infinity }} style={{ filter: streak ? "none" : "grayscale(1)", fontSize: 18 + Math.min(streak, 7) * 2 }}>
-            🔥
+            <Emoji e="🔥" />
           </motion.span>
           <span style={{ direction: "ltr" }}>{streak}</span>
         </span>
         <StarJar profile={profile} compact />
         <button type="button" onClick={() => onNav("parent")} className="grid h-11 w-11 place-items-center rounded-full bg-white/10 text-lg opacity-70" aria-label="אזור הורים">
-          🔒
+          <Emoji e="🔒" />
         </button>
       </div>
     </header>

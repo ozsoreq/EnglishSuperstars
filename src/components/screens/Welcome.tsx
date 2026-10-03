@@ -9,6 +9,7 @@ import { Avatar } from "../Avatar";
 import { Btn } from "../Btn";
 import { En } from "../En";
 import { Luna } from "../Luna";
+import { Emoji } from "@/components/Emoji";
 
 export function ProfilePicker({ onNew }: { onNew: () => void }) {
   const fam = useFamily();
@@ -32,7 +33,9 @@ export function ProfilePicker({ onNew }: { onNew: () => void }) {
         ))}
         {fam.profiles.length < MAX_PROFILES && (
           <motion.button type="button" whileTap={{ scale: 0.9 }} onClick={onNew} className="chunky flex w-32 flex-col items-center justify-center gap-2 bg-white/10 p-4">
-            <span className="text-5xl">➕</span>
+            <span className="text-5xl">
+              <Emoji e="➕" />
+            </span>
             <span>מגלה חדש</span>
           </motion.button>
         )}
@@ -50,7 +53,7 @@ export function NewExplorer({ onDone, onCancel }: { onDone: () => void; onCancel
     return (
       <div className="stars-bg flex min-h-dvh flex-col items-center justify-center gap-6 px-6 text-center">
         <motion.h1 className="text-5xl font-black text-gold glow-gold" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-          כוכבים ⭐
+          כוכבים <Emoji e="⭐" anim="spin" />
         </motion.h1>
         <p className="max-w-md text-xl">כל מילה שלומדים מגדילה את העולם שלכם.</p>
         <Luna size={180} bubbleSide="top" />
@@ -86,16 +89,17 @@ export function NewExplorer({ onDone, onCancel }: { onDone: () => void; onCancel
       />
       <h2 className="text-xl font-bold">בחרו דמות</h2>
       <div className="grid grid-cols-4 gap-3 sm:grid-cols-6">
-        {AVATARS.map((a) => (
+        {AVATARS.map((a, i) => (
           <motion.button
             key={a}
+            aria-label={`דמות ${i + 1}`}
             type="button"
             whileTap={{ scale: 0.88 }}
             onClick={() => setAvatar(a)}
             className={`grid h-16 w-16 place-items-center rounded-3xl text-4xl ${avatar === a ? "bg-gold" : "bg-white/10"}`}
             aria-pressed={avatar === a}
           >
-            {a}
+            <Emoji e={a} size="1em" />
           </motion.button>
         ))}
       </div>

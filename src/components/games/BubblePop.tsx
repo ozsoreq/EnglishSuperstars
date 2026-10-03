@@ -6,7 +6,8 @@ import { WORDS } from "@/lib/content/words";
 import { lunaSay } from "@/lib/luna";
 import { Picture } from "../Picture";
 import { En } from "../En";
-import { Pips, SpeakerButton, cheer, distractors, hearWord, nudge, shuffle, useTracker, wait, type GameProps } from "./shared";
+import { Pips, SpeakerButton, cheer, distractors, hearWord, nudge, shuffle, useTracker, wait, type GameProps, useRounds } from "./shared";
+import { Emoji } from "@/components/Emoji";
 
 const SPOTS = [
   { x: 27, y: 24 },
@@ -17,13 +18,17 @@ const SPOTS = [
 
 export function BubblePop({ activity, onDone }: GameProps) {
   const rounds = useMemo(() => shuffle(activity.words).slice(0, 5), [activity.words]);
-  const [round, setRound] = useState(0);
   const [popped, setPopped] = useState<string | null>(null);
   const [wiggle, setWiggle] = useState<string | null>(null);
   const [reveal, setReveal] = useState(false);
   const busy = useRef(false);
   const tracker = useTracker();
+  const { round, advance } = useRounds(rounds.length, () => onDone(tracker.result()));
   const reduce = useReducedMotion();
+  // Bubbles from a finished round stay on screen while they animate out;
+  // their taps (and any delayed follow-ups) must not touch the new round.
+  const roundRef = useRef(round);
+  roundRef.current = round;
 
   const target = rounds[round];
   const choices = useMemo(() => {
@@ -47,12 +52,13 @@ export function BubblePop({ activity, onDone }: GameProps) {
 
   const next = async () => {
     await wait(900);
-    if (round + 1 >= rounds.length) onDone(tracker.result());
-    else setRound((r) => r + 1);
+    advance(round);
   };
 
   const tap = async (id: string, el: HTMLElement) => {
-    if (busy.current || !target) return;
+    const mine = round;
+    const stale = () => roundRef.current !== mine;
+    if (stale() || busy.current || !target) return;
     if (id === target) {
       busy.current = true;
       setPopped(id);
@@ -68,13 +74,14 @@ export function BubblePop({ activity, onDone }: GameProps) {
     if (misses === 1) {
       nudge(target, misses);
       await lunaSay(`${w.he}! נסו שוב`);
-      void hearWord(target);
+      if (!stale()) void hearWord(target);
     } else {
       busy.current = true;
       nudge(target, misses);
       setReveal(true);
       await lunaSay("הנה היא!", w.en);
       await wait(600);
+      if (stale()) return;
       setPopped(target);
       tracker.finish(target, { shown: true });
       await next();
@@ -104,7 +111,7 @@ export function BubblePop({ activity, onDone }: GameProps) {
                 animate={{ scale: 2.2, opacity: 0 }}
                 transition={{ duration: 0.45 }}
               >
-                ✨
+                <Emoji e="✨" />
               </motion.div>
             ) : (
               <motion.button

@@ -15,6 +15,7 @@ import type { Profile } from "@/lib/store";
 import { Btn } from "../Btn";
 import { En } from "../En";
 import { Picture } from "../Picture";
+import { Emoji } from "@/components/Emoji";
 
 const THEMES: { id: Theme; he: string }[] = [
   { id: "greetings", he: "ברכות" },
@@ -42,9 +43,11 @@ export function Journal({ profile, onBack }: { profile: Profile; onBack: () => v
     <div className="mx-auto flex min-h-dvh max-w-3xl flex-col gap-4 px-4 pb-10 pt-[max(env(safe-area-inset-top),12px)]">
       <header className="flex items-center justify-between">
         <Btn tone="ghost" onClick={onBack} className="text-2xl" aria-label="חזרה">
-          ➜
+          <Emoji e="➜" />
         </Btn>
-        <h1 className="text-2xl font-bold">📖 יומן המגלים</h1>
+        <h1 className="text-2xl font-bold">
+          <Emoji e="📖" /> יומן המגלים
+        </h1>
         <span className="w-14" />
       </header>
 
@@ -59,19 +62,21 @@ export function Journal({ profile, onBack }: { profile: Profile; onBack: () => v
         </div>
         {growth > 0 && (
           <div className="max-w-40 text-base">
-            אתם יודעים <b className="text-coral">{growth}</b> מילים יותר מלפני חודש! 🌱
+            אתם יודעים <b className="text-coral">{growth}</b> מילים יותר מלפני חודש! <Emoji e="🌱" anim="wiggle" />
           </div>
         )}
       </section>
 
       <section>
-        <h2 className="mb-2 text-lg font-bold">🎒 תרמיל האוצרות</h2>
+        <h2 className="mb-2 text-lg font-bold">
+          <Emoji e="🎒" /> תרמיל האוצרות
+        </h2>
         <div className="flex flex-wrap gap-2">
           {ISLANDS[0].chapters.map((c) => {
             const has = treasures.includes(c);
             return (
               <div key={c.id} className="chunky grid h-16 w-16 place-items-center bg-white/10 text-3xl" title={has ? c.treasure.he : "עוד לא נמצא"}>
-                {has ? c.treasure.emoji : <span className="opacity-30">❔</span>}
+                {has ? <Emoji e={c.treasure.emoji} anim="float" /> : <span className="opacity-30">?</span>}
               </div>
             );
           })}
@@ -87,7 +92,7 @@ export function Journal({ profile, onBack }: { profile: Profile; onBack: () => v
               if (m === "unseen") {
                 return (
                   <div key={w.id} className="chunky grid h-28 place-items-center bg-white/5 text-3xl opacity-40" aria-label="מילה שעוד לא פגשתם">
-                    ❔
+                    <Emoji e="❔" />
                   </div>
                 );
               }
@@ -101,7 +106,7 @@ export function Journal({ profile, onBack }: { profile: Profile; onBack: () => v
                   style={{ border: `4px solid ${RING[m]}`, boxShadow: m === "gold" ? "0 0 16px #FFC53D" : "0 5px 0 #1d1f4588" }}
                   aria-label={`${w.en} — ${w.he}`}
                 >
-                  <Picture pic={w.pic} size={44} />
+                  <Picture pic={w.pic} size={44} anim={false} />
                   <En className="font-bold">
                     <span style={{ fontSize: w.en.length > 6 ? 20 : 26 }}>{w.en}</span>
                   </En>
@@ -113,11 +118,13 @@ export function Journal({ profile, onBack }: { profile: Profile; onBack: () => v
       ))}
 
       <section>
-        <h2 className="mb-2 text-lg font-bold">🏆 מדף הגביעים</h2>
+        <h2 className="mb-2 text-lg font-bold">
+          <Emoji e="🏆" /> מדף הגביעים
+        </h2>
         <div className="chunky flex gap-3 bg-[#8b6b4a]/60 p-3">
           {ISLANDS.map((i) => (
             <span key={i.id} className="text-4xl" title={i.name.he} style={{ opacity: profile.islandsDone.includes(i.id) ? 1 : 0.2 }}>
-              {profile.islandsDone.includes(i.id) ? "🏆" : "🏅"}
+              <Emoji e={profile.islandsDone.includes(i.id) ? "🏆" : "🏅"} />
             </span>
           ))}
         </div>

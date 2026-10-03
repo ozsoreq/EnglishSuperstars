@@ -28,6 +28,7 @@ import { En } from "../En";
 import { Luna } from "../Luna";
 import { MicButton } from "../MicButton";
 import { StarJar } from "../StarJar";
+import { Emoji, EmojiText } from "@/components/Emoji";
 
 type Tab = "gear" | "camp" | "pets" | "wishes";
 
@@ -69,9 +70,11 @@ export function Camp({ profile, onBack }: { profile: Profile; onBack: () => void
     <div className="mx-auto flex min-h-dvh max-w-3xl flex-col gap-3 px-4 pb-10 pt-[max(env(safe-area-inset-top),12px)]">
       <header className="flex items-center justify-between">
         <Btn tone="ghost" onClick={onBack} className="text-2xl" aria-label="חזרה">
-          ➜
+          <Emoji e="➜" />
         </Btn>
-        <h1 className="text-2xl font-bold">⛺ מחנה המגלים</h1>
+        <h1 className="text-2xl font-bold">
+          <Emoji e="⛺" /> מחנה המגלים
+        </h1>
         <StarJar profile={profile} />
       </header>
 
@@ -82,14 +85,14 @@ export function Camp({ profile, onBack }: { profile: Profile; onBack: () => void
           <Avatar profile={profile} size={64} />
           {pet && (
             <motion.span className="text-4xl" animate={{ y: [0, -6, 0] }} transition={{ duration: 1, repeat: Infinity }}>
-              {pet.emoji}
+              <Emoji e={pet.emoji} />
             </motion.span>
           )}
         </div>
         <div className="absolute bottom-2 end-3 flex max-w-[60%] flex-wrap-reverse justify-end gap-1 text-4xl">
           {ownedCamp.map((c) => (
             <motion.span key={c.id} initial={{ scale: 0, y: -30 }} animate={{ scale: [0, 1.25, 0.9, 1], y: 0 }} transition={{ duration: 0.5 }} title={c.he}>
-              {c.emoji}
+              <Emoji e={c.emoji} />
             </motion.span>
           ))}
           {ownedCamp.length === 0 && <span className="text-base text-night-deep/70">המחנה מחכה לבנייה…</span>}
@@ -149,7 +152,7 @@ function Shop({
         return (
           <div key={it.id} className="chunky flex flex-col items-center gap-1 bg-white/10 p-3 text-center">
             <motion.span className="text-5xl" whileTap={{ scale: 1.2 }} onClick={() => void sayWord(it.en)}>
-              {it.emoji}
+              <Emoji e={it.emoji} />
             </motion.span>
             <span className="font-bold">{it.he}</span>
             <En className="text-lg text-lavender">{it.en}</En>
@@ -168,7 +171,7 @@ function Shop({
                 </Btn>
                 {!canBuy && (
                   <button type="button" className="min-h-10 text-sm text-cream/80 underline" onClick={() => onSave(it)}>
-                    {saving ? "🫙 חוסכים לזה" : "לחסוך לזה"}
+                    {saving ? <><Emoji e="🫙" /> חוסכים לזה</> : "לחסוך לזה"}
                   </button>
                 )}
               </div>
@@ -211,11 +214,11 @@ function Pets({ profile }: { profile: Profile }) {
                 transition={anim ? { duration: 0.9 } : { duration: 2, repeat: Infinity }}
                 onAnimationComplete={() => anim && setTrickAnim(null)}
               >
-                {it.emoji}
+                <Emoji e={it.emoji} />
               </motion.span>
               <div>
                 <div className="font-bold">
-                  {it.he} {sleepy ? "💤" : "💖"}
+                  {it.he} <Emoji e={sleepy ? "💤" : "💖"} anim="breathe" />
                 </div>
                 <div className="text-sm text-cream/70">{sleepy ? "מנומנם ומחכה לכם" : "שמח ושבע"}</div>
                 <div className="mt-1 flex gap-2">
@@ -277,7 +280,9 @@ function Wishes({ profile, stars }: { profile: Profile; stars: number }) {
       <p className="text-center text-cream/80">משאלות אמיתיות שההורים הכינו. הם יאשרו כשתבקשו.</p>
       {parent.rewards.map((r) => (
         <div key={r.id} className="chunky flex items-center justify-between gap-2 bg-white/10 p-3">
-          <span className="text-lg font-bold">🎁 {r.title}</span>
+          <span className="text-lg font-bold">
+            <Emoji e="🎁" /> {r.title}
+          </span>
           <Btn
             tone={stars >= r.price ? "gold" : "ghost"}
             onClick={() => {
@@ -302,7 +307,7 @@ function Wishes({ profile, stars }: { profile: Profile; stars: number }) {
               .map((r) => (
                 <li key={r.id} className="flex justify-between rounded-2xl bg-white/5 px-3 py-2">
                   <span>{r.title}</span>
-                  <span>{r.status === "pending" ? "⏳ מחכה להורים" : r.status === "approved" ? "✅ אושר!" : "↩️ הכוכבים חזרו"}</span>
+                  <span><EmojiText text={r.status === "pending" ? "⏳ מחכה להורים" : r.status === "approved" ? "✅ אושר!" : "↩️ הכוכבים חזרו"} /></span>
                 </li>
               ))}
           </ul>

@@ -9,12 +9,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { sfx } from "@/lib/audio";
 import { item } from "@/lib/catalog";
 import { ISLANDS } from "@/lib/content/islands";
+import { emojiSrc } from "@/lib/emoji";
 import { lunaSay } from "@/lib/luna";
 import { chapterUnlocked, type Profile } from "@/lib/store";
 import { Avatar } from "../Avatar";
 import { Btn } from "../Btn";
 import { Luna } from "../Luna";
 import { Hud } from "./Hud";
+import { Emoji } from "@/components/Emoji";
 
 // Path stops in a 400×720 viewBox, starting bottom-right (RTL).
 const STOPS = [
@@ -150,13 +152,27 @@ export function IslandMap({
               [190, 640, "🌼"],
               [350, 170, "🌳"],
             ].map(([x, y, e], i) => (
-              <text key={i} x={x as number} y={y as number} fontSize="26" textAnchor="middle">
-                {e}
-              </text>
+              <motion.image
+                key={i}
+                href={emojiSrc(e as string) ?? undefined}
+                x={(x as number) - 16}
+                y={(y as number) - 28}
+                width="32"
+                height="32"
+                style={{ originX: "50%", originY: "100%" }}
+                animate={reduce ? {} : { rotate: [-3, 3, -3] }}
+                transition={{ duration: 4 + (i % 3), repeat: Infinity, ease: "easeInOut" }}
+              />
             ))}
-            <text x="365" y="705" fontSize="26">
-              ⛵
-            </text>
+            <motion.image
+              href={emojiSrc("⛵") ?? undefined}
+              x="350"
+              y="672"
+              width="38"
+              height="38"
+              animate={reduce ? {} : { y: [672, 666, 672], rotate: [-4, 4, -4] }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            />
             {/* the path: dotted full route, golden unrolled part */}
             <path d={fullPath} stroke="#ffffff55" strokeWidth="7" strokeDasharray="2 14" strokeLinecap="round" fill="none" />
             <motion.path
@@ -198,8 +214,10 @@ export function IslandMap({
                   transition={{ duration: 1.6, repeat: Infinity }}
                   aria-label={`${c.name.he}${restored ? " — הוצל" : open ? "" : " — נעול"}`}
                 >
-                  {c.landmark}
-                  {restored && <span className="absolute -top-2 -end-2 text-xl">{c.treasure.emoji}</span>}
+                  <Emoji e={c.landmark} size="1em" />
+                  {restored && <span className="absolute -top-2 -end-2 text-xl">
+                      <Emoji e={c.treasure.emoji} anim="wiggle" />
+                    </span>}
                 </motion.button>
                 <div className="pointer-events-none mt-1 whitespace-nowrap rounded-full bg-night-deep/70 px-2 text-center text-xs font-bold">
                   {c.name.he}
@@ -210,7 +228,7 @@ export function IslandMap({
                     animate={reduce ? {} : { y: [0, -8, 0] }}
                     transition={{ duration: 1.2, repeat: Infinity }}
                   >
-                    ❗
+                    <Emoji e="❗" />
                   </motion.div>
                 )}
                 {/* fog */}
@@ -220,7 +238,7 @@ export function IslandMap({
                     animate={reduce ? {} : { x: [-4, 4, -4] }}
                     transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    ☁️
+                    <Emoji e="☁️" />
                   </motion.div>
                 )}
               </div>
@@ -245,7 +263,7 @@ export function IslandMap({
                 animate={reduce ? {} : { y: [0, -6, 0] }}
                 transition={{ duration: 0.8, repeat: Infinity, delay: 0.2 }}
               >
-                {pet.emoji}
+                <Emoji e={pet.emoji} />
               </motion.span>
             )}
           </motion.div>

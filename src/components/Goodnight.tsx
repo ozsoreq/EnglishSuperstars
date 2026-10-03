@@ -6,6 +6,7 @@ import { sfx } from "@/lib/audio";
 import { lunaSay } from "@/lib/luna";
 import { Btn } from "./Btn";
 import { En } from "./En";
+import { Emoji } from "@/components/Emoji";
 
 export function Goodnight({ name, reason, onParent }: { name: string; reason: "limit" | "bedtime"; onParent: () => void }) {
   useEffect(() => {
@@ -29,14 +30,14 @@ export function Goodnight({ name, reason, onParent }: { name: string; reason: "l
       transition={{ duration: 1.5 }}
     >
       <motion.div className="text-8xl" animate={{ rotate: [-4, 4, -4] }} transition={{ duration: 8, repeat: Infinity }}>
-        🌙
+        <Emoji e="🌙" />
       </motion.div>
       <motion.div className="text-7xl" animate={{ scale: [1, 1.04, 1] }} transition={{ duration: 4, repeat: Infinity }}>
-        🦊💤
+        <Emoji e="🦊" /><Emoji e="💤" />
       </motion.div>
       <h1 className="text-3xl font-bold">לילה טוב, {name}!</h1>
       <p className="max-w-md text-lg text-cream/85">
-        {reason === "bedtime" ? "האי הולך לישון. נתראה מחר בבוקר!" : "סיימנו את ההרפתקה של היום. הכוכבים שמורים בצנצנת ⭐"}
+        {reason === "bedtime" ? "האי הולך לישון. נתראה מחר בבוקר!" : <>סיימנו את ההרפתקה של היום. הכוכבים שמורים בצנצנת <Emoji e="⭐" /></>}
       </p>
       <p className="text-2xl text-lavender">
         <En>Good night!</En>

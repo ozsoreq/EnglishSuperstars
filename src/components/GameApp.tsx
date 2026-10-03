@@ -19,6 +19,7 @@ import { ParentDashboard, ParentGate } from "./screens/Parent";
 import { Quest } from "./screens/Quest";
 import { NewExplorer, ProfilePicker } from "./screens/Welcome";
 import { WorldMap } from "./screens/WorldMap";
+import { Emoji } from "@/components/Emoji";
 
 type Screen = "map" | "world" | "quest" | "camp" | "journal" | "gate" | "parent" | "new";
 
@@ -69,7 +70,7 @@ export function GameApp() {
   }, [profile, inParentArea, blocked]);
 
   if (!mounted) {
-    return <div className="grid min-h-dvh place-items-center text-6xl">⭐</div>;
+    return <div className="grid min-h-dvh place-items-center text-6xl"><Emoji e="⭐" anim="spin" /></div>;
   }
 
   const overlays = (

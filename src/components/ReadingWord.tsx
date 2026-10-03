@@ -5,6 +5,7 @@
  */
 import { motion, useReducedMotion } from "motion/react";
 import { En } from "./En";
+import { Emoji } from "@/components/Emoji";
 
 export function ReadingWord({ text, play, size = 44 }: { text: string; play: number; size?: number }) {
   const reduce = useReducedMotion();
@@ -33,7 +34,7 @@ export function ReadingWord({ text, play, size = 44 }: { text: string; play: num
           animate={{ left: ["0%", "95%"], opacity: [0, 1, 1, 0] }}
           transition={{ duration: 0.3 + text.length * 0.16, ease: "linear" }}
         >
-          ✨
+          <Emoji e="✨" />
         </motion.span>
       )}
     </span>

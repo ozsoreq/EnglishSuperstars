@@ -1,6 +1,7 @@
 "use client";
 import { motion, type HTMLMotionProps } from "motion/react";
 import { sfx } from "@/lib/audio";
+import { emojify } from "./Emoji";
 
 type Props = HTMLMotionProps<"button"> & { tone?: "gold" | "mint" | "coral" | "lavender" | "cream" | "ghost"; silent?: boolean };
 
@@ -14,7 +15,7 @@ const TONES: Record<NonNullable<Props["tone"]>, string> = {
 };
 
 /** Every tap answers: squash on press, spring back. Min 56px touch target. */
-export function Btn({ tone = "cream", silent, className = "", onClick, ...rest }: Props) {
+export function Btn({ tone = "cream", silent, className = "", onClick, children, ...rest }: Props) {
   return (
     <motion.button
       type="button"
@@ -27,6 +28,8 @@ export function Btn({ tone = "cream", silent, className = "", onClick, ...rest }
         onClick?.(e);
       }}
       {...rest}
-    />
+    >
+      {emojify(children as React.ReactNode)}
+    </motion.button>
   );
 }

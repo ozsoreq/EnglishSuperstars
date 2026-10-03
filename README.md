@@ -46,9 +46,9 @@ The core promise is *"every word you learn makes your world bigger."* In this bu
 These are stand-ins for the full production stack in the spec. Each sits behind a small interface so it can be swapped out.
 
 - **Persistence.** State lives on the device in `localStorage` (`src/lib/store.ts`). All star movement already goes through the pure ledger module, which is the validation a server route would run. The next step is to put it behind `/api/ledger` with Neon Postgres + Drizzle and Upstash for daily caps. That step is what makes the ledger truly server-authoritative.
-- **Voice.** The browser's speech synthesis stands in for the voice-actor recordings, which is the spec's own TTS fallback. Letter sounds use spoken approximations. Every line is also captioned. Hebrew voice plays only where the device has a Hebrew voice.
+- **Voice.** Neural text-to-speech stands in for the voice-actor recordings (see [Voice](#voice)).
 - **Speech recognition.** The browser Web Speech API, which is the spec's fallback. Matching is lenient for Hebrew-accented child speech (`src/lib/speech-match.ts`). If no recogniser or microphone is available, the mic becomes an "I said it!" button. Self-reports don't earn the +1 speaking star.
-- **Art and motion.** Luna and the map are hand-drawn SVG animated with Motion, and the art uses emoji. This replaces Rive, PixiJS, GSAP and dotLottie for now. SFX are synthesised with Web Audio instead of Howler sprites.
+- **Art and motion.** Luna and the map are hand-drawn SVG animated with Motion. Pictures use Fluent 3D emoji art (see [Pictures](#pictures)). This replaces Rive, PixiJS, GSAP and dotLottie for now. SFX are synthesised with Web Audio.
 
 ## Not yet built
 
@@ -58,6 +58,43 @@ These are stand-ins for the full production stack in the spec. Each sits behind 
 - Parent accounts (Auth.js/Clerk)
 - First-party learning events (beyond Vercel's page-view analytics)
 - The weekly email summary
+
+## Voice
+
+Speech is neural, not the robotic device voice:
+
+| Who | Voice (Azure AI Speech) |
+|---|---|
+| Luna in Hebrew | `he-IL-HilaNeural` |
+| Luna in English, model words | `en-US-JennyNeural` (friendly style, a little slower) |
+| Child model voice in "Say It to Luna" | `en-US-AnaNeural` |
+| Letter sounds (phonics) | Exact sounds via SSML IPA phonemes, e.g. /bə/ rather than "bee" |
+
+- **How it works.** `GET /api/tts` (`src/app/api/tts/route.ts`) builds SSML (`src/lib/tts.ts`), calls Azure and returns MP3. The client plays it with Howler.js (`src/lib/audio.ts`).
+- **Caching.** Each URL is immutable, so Vercel's CDN serves repeats without calling Azure again. The service worker also caches every clip for offline play, and each quest preloads its lines and words when it starts.
+- **Limits.** Requests are validated (languages, voices, letters, 240-character cap) and rate-limited per instance.
+- **Fallback.** Without a key, or when offline with nothing cached, the app uses the device's most natural voice: it prefers voices named "Natural", "Neural", "Premium" or "Enhanced". Every line is still captioned.
+
+To turn it on, create an Azure AI Speech resource (the free tier covers 500k characters a month). Then set these environment variables in Vercel (Project → Settings → Environment Variables) and redeploy:
+
+```
+AZURE_SPEECH_KEY=…
+AZURE_SPEECH_REGION=westeurope        # your resource's region
+# optional voice overrides
+AZURE_TTS_VOICE_EN=en-US-JennyNeural
+AZURE_TTS_VOICE_HE=he-IL-HilaNeural
+AZURE_TTS_VOICE_CHILD=en-US-AnaNeural
+```
+
+Privacy: only the text the app speaks is sent to Azure. Some greetings include the child's first name. The child's own voice is never sent. Azure is listed as a processor in the parent area.
+
+## Pictures
+
+All emoji are drawn with **Microsoft Fluent Emoji 3D** (MIT), taken from the `@lobehub/fluent-emoji-3d` package. They are not left to the device's emoji font, which looks dated and different on every phone.
+
+- `npm run emoji` (`scripts/sync-emoji.mjs`) scans `src/` and copies only the art in use into `public/emoji/` (~120 files, ~800 KB). It also writes the lookup table and the offline pre-cache list.
+- `<Emoji>` (`src/components/Emoji.tsx`) renders the art with optional idle motion (float, breathe, wiggle, bounce, spin). Motion is off under `prefers-reduced-motion`. Buttons convert emoji in their labels automatically.
+- Re-run `npm run emoji` after adding an emoji to content or UI. A unit test fails if any content emoji has no art.
 
 ## Analytics
 

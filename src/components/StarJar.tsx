@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { item } from "@/lib/catalog";
 import { balance } from "@/lib/ledger";
 import type { Profile } from "@/lib/store";
+import { Emoji } from "@/components/Emoji";
 
 export const JAR_BUMP = "kochavim:jar-bump";
 
@@ -64,7 +65,7 @@ export function StarJar({ profile, compact = false }: { profile: Profile; compac
         </div>
         {!compact && goal.id && (
           <div className="text-xs text-cream/80">
-            חוסכים ל־{goal.emoji} ({goal.price})
+            חוסכים ל־<Emoji e={goal.emoji} /> ({goal.price})
           </div>
         )}
       </div>

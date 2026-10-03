@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { sfx } from "@/lib/audio";
 import { on } from "@/lib/events";
 import { JAR_BUMP } from "./StarJar";
+import { Emoji } from "@/components/Emoji";
 
 interface Flying {
   id: number;
@@ -64,7 +65,7 @@ export function StarFlight() {
                 setStars((all) => all.filter((x) => x.id !== s.id));
               }}
             >
-              ⭐
+              <Emoji e="⭐" />
             </motion.div>
           );
         })}

@@ -2,12 +2,13 @@
 /** b/d Detective (look-alike letters): sort floating letters into the right magnifying glass. */
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { speak } from "@/lib/audio";
-import { LETTER_SOUNDS, WORDS } from "@/lib/content/words";
+import { saySound } from "@/lib/audio";
+import { WORDS } from "@/lib/content/words";
 import { lunaSay } from "@/lib/luna";
 import { En } from "../En";
 import { Picture } from "../Picture";
-import { Pips, cheer, nudge, shuffle, useTracker, wait, type GameProps } from "./shared";
+import { Pips, cheer, nudge, shuffle, useTracker, wait, type GameProps, useRounds } from "./shared";
+import { Emoji } from "@/components/Emoji";
 
 const GLASSES = [
   { letter: "b", wordId: "ball" },
@@ -16,12 +17,12 @@ const GLASSES = [
 
 export function Detective({ onDone }: GameProps) {
   const rounds = useMemo(() => shuffle(["b", "d", "b", "d", "b", "d", "b", "d"]).slice(0, 6), []);
-  const [round, setRound] = useState(0);
   const [flyTo, setFlyTo] = useState<number | null>(null);
   const [wrong, setWrong] = useState<number | null>(null);
   const [showTummy, setShowTummy] = useState(false);
   const busy = useRef(false);
   const tracker = useTracker();
+  const { round, advance } = useRounds(rounds.length, () => onDone(tracker.result()));
   const reduce = useReducedMotion();
   const letter = rounds[round];
 
@@ -41,11 +42,10 @@ export function Detective({ onDone }: GameProps) {
       busy.current = true;
       setFlyTo(gi);
       cheer(el, wordId);
-      void speak(LETTER_SOUNDS[letter], "en", { rate: 0.7 });
+      void saySound(letter);
       tracker.finish(key, { wordId, shown: showTummy });
       await wait(900);
-      if (round + 1 >= rounds.length) onDone(tracker.result());
-      else setRound((r) => r + 1);
+      advance(round);
       return;
     }
     setWrong(gi);
@@ -66,7 +66,7 @@ export function Detective({ onDone }: GameProps) {
           <motion.button
             key={round}
             type="button"
-            onClick={() => void speak(LETTER_SOUNDS[letter], "en", { rate: 0.7 })}
+            onClick={() => void saySound(letter)}
             className="relative grid h-36 w-36 place-items-center rounded-full bg-white/10"
             initial={{ y: -80, opacity: 0, rotate: -20 }}
             animate={
@@ -88,7 +88,7 @@ export function Detective({ onDone }: GameProps) {
                 animate={{ scale: [1, 1.3, 1] }}
                 transition={{ duration: 0.8, repeat: Infinity }}
               >
-                {tummyRight ? "👉" : "👈"}
+                <Emoji e={tummyRight ? "👉" : "👈"} />
               </motion.span>
             )}
           </motion.button>

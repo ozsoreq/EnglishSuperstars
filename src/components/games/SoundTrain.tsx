@@ -6,12 +6,13 @@
  */
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { sfx, speak, sayWord } from "@/lib/audio";
-import { LETTER_SOUNDS, WORDS } from "@/lib/content/words";
+import { sfx, saySound, sayWord } from "@/lib/audio";
+import { WORDS } from "@/lib/content/words";
 import { lunaSay } from "@/lib/luna";
 import { En } from "../En";
 import { Picture } from "../Picture";
-import { Pips, SpeakerButton, cheer, nudge, shuffle, useTracker, wait, type GameProps } from "./shared";
+import { Pips, SpeakerButton, cheer, nudge, shuffle, useTracker, wait, type GameProps, useRounds } from "./shared";
+import { Emoji } from "@/components/Emoji";
 
 type Round =
   | { kind: "first"; key: string; wordId: string; pic: string; answer: string[]; options: string[]; en: string; he: string }
@@ -42,14 +43,16 @@ function buildRounds(activity: GameProps["activity"], chapter: GameProps["chapte
 
 export function SoundTrain({ activity, chapter, onDone }: GameProps) {
   const rounds = useMemo(() => buildRounds(activity, chapter), [activity, chapter]);
-  const [round, setRound] = useState(0);
   const [placed, setPlaced] = useState<number[]>([]); // option indexes attached, in order
   const [shake, setShake] = useState<number | null>(null);
   const [departing, setDeparting] = useState(false);
   const [hint, setHint] = useState(false);
   const busy = useRef(false);
   const tracker = useTracker();
+  const { round, advance } = useRounds(rounds.length, () => onDone(tracker.result()));
   const reduce = useReducedMotion();
+  const roundRef = useRef(round);
+  roundRef.current = round;
   const r = rounds[round];
 
   const promptRound = async (x: Round) => {
@@ -70,9 +73,10 @@ export function SoundTrain({ activity, chapter, onDone }: GameProps) {
   if (!r) return null;
 
   const tapCarriage = async (optIndex: number, el: HTMLElement) => {
-    if (busy.current || placed.includes(optIndex)) return;
+    // Carriages from a finished round can still be tapped while they animate out.
+    if (roundRef.current !== round || busy.current || placed.includes(optIndex)) return;
     const letter = r.options[optIndex];
-    void speak(LETTER_SOUNDS[letter] ?? letter, "en", { rate: 0.7 });
+    void saySound(letter);
     const need = r.answer[placed.length];
     if (letter !== need) {
       setShake(optIndex);
@@ -93,14 +97,13 @@ export function SoundTrain({ activity, chapter, onDone }: GameProps) {
     tracker.finish(r.key, { wordId: r.kind === "first" ? r.wordId : undefined, shown: hint });
     await wait(300);
     if (r.kind === "build") {
-      for (const l of r.answer) await speak(LETTER_SOUNDS[l] ?? l, "en", { rate: 0.75 });
+      for (const l of r.answer) await saySound(l);
     }
     setDeparting(true);
     sfx("chug");
     await sayWord(r.en);
     await wait(reduce ? 300 : 1100);
-    if (round + 1 >= rounds.length) onDone(tracker.result());
-    else setRound((n) => n + 1);
+    advance(round);
   };
 
   const needLetter = r.answer[placed.length];
@@ -123,7 +126,7 @@ export function SoundTrain({ activity, chapter, onDone }: GameProps) {
           transition={{ duration: 1.2, ease: "easeIn" }}
         >
           <span className="text-6xl" aria-hidden>
-            🚂
+            <Emoji e="🚂" />
           </span>
           {r.answer.map((_, slot) => {
             const opt = placed[slot];

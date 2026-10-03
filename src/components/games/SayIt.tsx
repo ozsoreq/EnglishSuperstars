@@ -4,22 +4,22 @@
  * she repeats it back when recognised. Three tries, then "Great try!".
  */
 import { motion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { WORDS } from "@/lib/content/words";
 import { lunaSay } from "@/lib/luna";
 import { logSpeech } from "@/lib/store";
 import { MicButton, type MicOutcome } from "../MicButton";
 import { Picture } from "../Picture";
 import { ReadingWord } from "../ReadingWord";
-import { Pips, SpeakerButton, cheer, hearWord, shuffle, useTracker, wait, type GameProps } from "./shared";
+import { Pips, SpeakerButton, cheer, hearWord, shuffle, useTracker, wait, type GameProps, useRounds } from "./shared";
 
 export function SayIt({ activity, onDone }: GameProps) {
   const rounds = useMemo(() => shuffle(activity.words).slice(0, 4), [activity.words]);
-  const [round, setRound] = useState(0);
   const [tries, setTries] = useState(0);
   const [busy, setBusy] = useState(false);
   const [play, setPlay] = useState(0);
   const tracker = useTracker();
+  const { round, advance: nextRound } = useRounds(rounds.length, () => onDone(tracker.result()));
   const id = rounds[round];
   const w = id ? WORDS[id] : undefined;
 
@@ -27,21 +27,23 @@ export function SayIt({ activity, onDone }: GameProps) {
     if (!id) return;
     setTries(0);
     setBusy(false);
+    handling.current = false;
     const t = setTimeout(() => {
       setPlay((p) => p + 1);
-      void hearWord(id);
+      void hearWord(id, "child");
     }, 400);
     return () => clearTimeout(t);
   }, [id]);
 
   const advance = async () => {
     await wait(700);
-    if (round + 1 >= rounds.length) onDone(tracker.result());
-    else setRound((r) => r + 1);
+    nextRound(round);
   };
 
+  const handling = useRef(false);
   const onResult = async ({ matched, recognized }: MicOutcome) => {
-    if (!w || !id) return;
+    if (!w || !id || handling.current) return;
+    handling.current = true;
     setBusy(true);
     if (recognized) logSpeech(w.en, true);
     if (matched) {
@@ -62,7 +64,8 @@ export function SayIt({ activity, onDone }: GameProps) {
     } else {
       await lunaSay("כמעט! הקשיבו ונסו שוב");
       setPlay((p) => p + 1);
-      await hearWord(id);
+      await hearWord(id, "child");
+      handling.current = false;
       setBusy(false);
     }
   };
@@ -88,7 +91,7 @@ export function SayIt({ activity, onDone }: GameProps) {
         <SpeakerButton
           onClick={() => {
             setPlay((p) => p + 1);
-            void hearWord(id);
+            void hearWord(id, "child");
           }}
         />
         <MicButton target={w.en} onResult={onResult} disabled={busy} />

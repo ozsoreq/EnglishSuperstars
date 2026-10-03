@@ -24,6 +24,7 @@ import {
 } from "@/lib/store";
 import { Avatar } from "../Avatar";
 import { Btn } from "../Btn";
+import { Emoji, EmojiText } from "@/components/Emoji";
 
 export function ParentGate({ onPass, onCancel }: { onPass: () => void; onCancel: () => void }) {
   const { parent } = useFamily();
@@ -52,7 +53,9 @@ export function ParentGate({ onPass, onCancel }: { onPass: () => void; onCancel:
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-4 px-6">
-      <h1 className="text-2xl font-bold">🔒 כניסת הורים</h1>
+      <h1 className="text-2xl font-bold">
+        <Emoji e="🔒" /> כניסת הורים
+      </h1>
       <label className="flex flex-col gap-1">
         <span>
           כמה זה <b style={{ direction: "ltr", display: "inline-block" }}>{q.a} × {q.b}</b>?
@@ -103,7 +106,7 @@ export function ParentDashboard({ onExit, onAddChild }: { onExit: () => void; on
         <div className="flex gap-2">
           {fam.profiles.map((p) => (
             <button key={p.id} type="button" onClick={() => setKidId(p.id)} className={`rounded-2xl px-3 py-2 ${p.id === kid?.id ? "bg-lavender text-night-deep" : "bg-white/10"}`}>
-              {p.avatar} {p.name}
+              <Emoji e={p.avatar} /> {p.name}
             </button>
           ))}
         </div>
@@ -165,7 +168,7 @@ function Progress({ kid }: { kid: Profile }) {
     <div className="flex flex-col gap-4">
       <Card title="סיכום שבועי">
         <p className="text-lg">
-          {kid.name} למד/ה <b className="text-mint">{weekWords}</b> מילים חדשות השבוע. רצף נוכחי: {kid.streak.count} ימים 🔥
+          {kid.name} למד/ה <b className="text-mint">{weekWords}</b> מילים חדשות השבוע. רצף נוכחי: {kid.streak.count} ימים <Emoji e="🔥" />
         </p>
       </Card>
       <Card title="מילים לפי שליטה">
@@ -208,7 +211,7 @@ function Progress({ kid }: { kid: Profile }) {
                 <span dir="ltr" className="en">
                   {s.word}
                 </span>{" "}
-                {s.ok ? "✅" : "🔁"}
+                <Emoji e={s.ok ? "✅" : "🔁"} />
               </li>
             ))}
           </ul>
@@ -298,7 +301,7 @@ function Rewards({ kid }: { kid: Profile }) {
             {pending.map((r) => (
               <li key={r.id} className="flex items-center justify-between gap-2">
                 <span>
-                  {r.title} ({r.price}⭐)
+                  {r.title} (<bdi dir="ltr">{r.price}</bdi> <Emoji e="⭐" />)
                 </span>
                 <span className="flex gap-2">
                   <Btn tone="mint" className="text-sm" onClick={() => resolveRequest(kid.id, r.id, true)}>
@@ -318,7 +321,7 @@ function Rewards({ kid }: { kid: Profile }) {
           {parent.rewards.map((r) => (
             <li key={r.id} className="flex items-center justify-between">
               <span>
-                🎁 {r.title} — {r.price}⭐
+                <Emoji e="🎁" /> {r.title} — <bdi dir="ltr">{r.price}</bdi> <Emoji e="⭐" />
               </span>
               <button type="button" className="min-h-10 px-2 text-coral" onClick={() => updateParent({ rewards: parent.rewards.filter((x) => x.id !== r.id) })}>
                 מחיקה
@@ -355,7 +358,11 @@ function Rewards({ kid }: { kid: Profile }) {
             שליחה
           </Btn>
         </div>
-        {msg && <p className="mt-2 text-mint">{msg}</p>}
+        {msg && (
+          <p className="mt-2 text-mint">
+            <EmojiText text={msg} />
+          </p>
+        )}
       </Card>
     </div>
   );
@@ -405,7 +412,8 @@ function Privacy() {
       </Card>
       <Card title="ספקי צד שלישי">
         <ul className="list-disc space-y-1 ps-5">
-          <li>זיהוי דיבור והקראה: מנוע הדיבור המובנה של הדפדפן/מערכת ההפעלה.</li>
+          <li>הקראה: Microsoft Azure AI Speech (קולות נוירליים). נשלח רק הטקסט שהאפליקציה מקריאה — לעיתים כולל השם הפרטי בברכה. אף פעם לא הקול של הילד/ה.</li>
+          <li>זיהוי דיבור: מנוע הדיבור המובנה של הדפדפן/מערכת ההפעלה.</li>
           <li>גופנים: Google Fonts (נטענים פעם אחת בזמן הבנייה).</li>
           <li>סטטיסטיקת ביקורים: Vercel Web Analytics — ללא עוגיות וללא זיהוי אישי.</li>
         </ul>

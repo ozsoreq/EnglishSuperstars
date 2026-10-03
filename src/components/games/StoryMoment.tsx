@@ -17,6 +17,7 @@ import { Picture } from "../Picture";
 import { ReadingWord } from "../ReadingWord";
 import { Btn } from "../Btn";
 import { SpeakerButton, wait, type GameProps } from "./shared";
+import { Emoji } from "@/components/Emoji";
 
 type Step = "hear" | "say" | "read";
 
@@ -52,8 +53,11 @@ export function StoryMoment({ activity, chapter, onDone }: GameProps) {
     };
   }, [i, w]);
 
+  // One finish per word, however fast the taps come.
+  const finishedFor = useRef(-1);
   const finishWord = async (spoke: boolean) => {
-    if (!w || !id) return;
+    if (!w || !id || finishedFor.current === i) return;
+    finishedFor.current = i;
     if (spoke) setSaid((s) => [...s, id]);
     setStep("read");
     setPlay((p) => p + 1);
@@ -75,7 +79,7 @@ export function StoryMoment({ activity, chapter, onDone }: GameProps) {
   };
 
   const onMic = async ({ matched, recognized: rec }: MicOutcome) => {
-    if (!w || !id) return;
+    if (!w || !id || finishedFor.current === i) return;
     if (matched) {
       if (rec) {
         logSpeech(w.en, true);
@@ -109,7 +113,7 @@ export function StoryMoment({ activity, chapter, onDone }: GameProps) {
           animate={{ filter: `grayscale(${1 - progress}) brightness(${0.6 + progress * 0.4})`, scale: 1 + progress * 0.1 }}
           transition={{ duration: 0.8 }}
         >
-          {chapter.landmark}
+          <Emoji e={chapter.landmark} size="1em" anim="float" />
         </motion.span>
         {restored.map((rid, k) => {
           const a = (k / Math.max(words.length, 1)) * Math.PI * 2 - Math.PI / 2;
@@ -138,7 +142,7 @@ export function StoryMoment({ activity, chapter, onDone }: GameProps) {
             className="chunky flex w-full max-w-sm flex-col items-center gap-2 bg-white/10 px-6 py-4"
           >
             <Picture pic={w.pic} size={96} />
-            <div className="min-h-[60px]">{step === "read" ? <ReadingWord text={w.en} play={play} /> : <span className="text-3xl">👂</span>}</div>
+            <div className="min-h-[60px]">{step === "read" ? <ReadingWord text={w.en} play={play} /> : <span className="text-3xl"><Emoji e="👂" anim="breathe" /></span>}</div>
             <span className="text-base text-cream/70">{w.he}</span>
           </motion.div>
         )}
@@ -161,7 +165,7 @@ export function StoryMoment({ activity, chapter, onDone }: GameProps) {
       <div className="flex gap-1.5" aria-hidden>
         {words.map((x) => (
           <span key={x} className="text-xl">
-            {restored.includes(x) ? "🌟" : "▫️"}
+            {restored.includes(x) ? <Emoji e="🌟" anim="breathe" /> : <span className="inline-block h-3 w-3 rounded-full bg-white/25 align-middle" />}
           </span>
         ))}
       </div>
