@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+@theme {
+  --color-night: #2b2d5c;
+  --color-night-deep: #1d1f45;
+  --color-lavender: #b9a7f5;
+  --color-coral: #ff8fa3;
+  --color-mint: #7fe3c4;
+  --color-cream: #fff4d6;
+  --color-gold: #ffc53d;
+  --color-sea: #5ab8d6;
+  --color-sand: #f6deb0;
+  --font-ui: var(--font-rubik), system-ui, sans-serif;
+  --font-learn: var(--font-andika), "Andika", system-ui, sans-serif;
+  --radius-blob: 28px;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--color-night-deep);
+  color: var(--color-cream);
+  font-family: var(--font-ui);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 80% -10%, #4a3f8f 0%, transparent 60%),
+    radial-gradient(900px 500px at 0% 110%, #3b2f6b 0%, transparent 60%),
+    var(--color-night-deep);
+  min-height: 100dvh;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* English learning text: always LTR, always Andika, never mixed into a Hebrew line. */
+.en {
+  font-family: var(--font-learn);
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+  letter-spacing: 0.01em;
+}
+
+.chunky {
+  border: 3px solid rgba(29, 31, 69, 0.85);
+  border-radius: var(--radius-blob);
+  box-shadow: 0 6px 0 rgba(29, 31, 69, 0.55);
+}
+
+.glow-gold {
+  filter: drop-shadow(0 0 10px rgba(255, 197, 61, 0.7));
+}
+
+.stars-bg {
+  background-image:
+    radial-gradient(2px 2px at 20% 30%, #fff8 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 70% 20%, #fff6 50%, transparent 51%),
+    radial-gradient(2px 2px at 40% 70%, #fff5 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 85% 60%, #fff7 50%, transparent 51%),
+    radial-gradient(1px 1px at 10% 85%, #fff6 50%, transparent 51%);
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+.twinkle { animation: twinkle 6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+button {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+button:focus-visible {
+  outline: 3px solid var(--color-gold);
+  outline-offset: 3px;
+}

@@ -1,0 +1,15 @@
+{
+  "name": "כוכבים — Kochavim English",
+  "short_name": "כוכבים",
+  "description": "הרפתקה באנגלית לילדים",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1D1F45",
+  "theme_color": "#2B2D5C",
+  "lang": "he",
+  "dir": "rtl",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
