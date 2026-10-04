@@ -9,7 +9,7 @@
 
 export type TtsLang = "he" | "en";
 /** line = Luna talking; word = a clear, slower model word; sound = a letter sound. */
-export type TtsKind = "line" | "word" | "sound";
+export type TtsKind = "line" | "word" | "sound" | "letter";
 export type TtsVoice = "guide" | "child";
 
 export interface TtsRequest {
@@ -57,6 +57,9 @@ export const LETTER_IPA: Record<string, string> = {
   z: "zː",
 };
 
+/** Letters whose names can be spoken (kind "letter": "l" is said "el"). */
+export const LETTERS: readonly string[] = "abcdefghijklmnopqrstuvwxyz".split("");
+
 /**
  * Stable id for a pre-recorded clip: FNV-1a 64 over "lang|kind|voice|text"
  * (UTF-8), as 16 hex chars. scripts/voice/generate.py computes the same.
@@ -83,10 +86,11 @@ export function parseTtsRequest(params: URLSearchParams): TtsRequest | null {
   const kind = params.get("kind") ?? "line";
   const voice = params.get("voice") ?? "guide";
   if (lang !== "he" && lang !== "en") return null;
-  if (kind !== "line" && kind !== "word" && kind !== "sound") return null;
+  if (kind !== "line" && kind !== "word" && kind !== "sound" && kind !== "letter") return null;
   if (voice !== "guide" && voice !== "child") return null;
   if (!text || text.length > MAX_TTS_CHARS) return null;
   if (kind === "sound" && !LETTER_IPA[text]) return null;
+  if (kind === "letter" && !LETTERS.includes(text)) return null;
   if (lang === "he" && (kind !== "line" || voice !== "guide")) return null;
   return { text, lang, kind, voice };
 }
@@ -106,6 +110,8 @@ export function buildSsml(r: TtsRequest, voice: string): string {
   let body: string;
   if (r.kind === "sound") {
     body = `<prosody rate="-10%"><phoneme alphabet="ipa" ph="${LETTER_IPA[r.text]}">${escapeXml(r.text)}</phoneme></prosody>`;
+  } else if (r.kind === "letter") {
+    body = `<prosody rate="-10%"><say-as interpret-as="characters">${escapeXml(r.text.toUpperCase())}</say-as></prosody>`;
   } else if (r.kind === "word") {
     body = `<prosody rate="-20%">${escapeXml(r.text)}</prosody>`;
   } else if (r.lang === "en" && r.voice === "guide") {

@@ -2,7 +2,7 @@
 /** b/d Detective (look-alike letters): sort floating letters into the right magnifying glass. */
 import { AnimatePresence, m as motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { saySound } from "@/lib/audio";
+import { sayLetter } from "@/lib/audio";
 import { WORDS } from "@/lib/content/words";
 import { useDebug } from "@/lib/debug";
 import { L } from "@/lib/lines";
@@ -45,7 +45,7 @@ export function Detective({ onDone }: GameProps) {
       busy.current = true;
       setFlyTo(gi);
       cheer(el, wordId);
-      void saySound(letter);
+      void sayLetter(letter);
       tracker.finish(key, { wordId, shown: showTummy });
       await wait(900);
       advance(round);
@@ -69,7 +69,7 @@ export function Detective({ onDone }: GameProps) {
           <motion.button
             key={round}
             type="button"
-            onClick={() => void saySound(letter)}
+            onClick={() => void sayLetter(letter)}
             className="relative grid h-36 w-36 place-items-center rounded-full bg-white/10"
             initial={{ y: -80, opacity: 0, rotate: -20 }}
             animate={

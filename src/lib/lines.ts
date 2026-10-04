@@ -54,18 +54,17 @@ export const L = {
   // Games
   tryAgainWord: (w: Word): Line => ({ he: `${w.he}! נסו שוב` }),
   hereItIs: (w: Word): Line => ({ he: "הנה היא!", en: w.en }),
-  echoWord: (w: Word): Line => ({ en: w.en }),
-  excellent: (w: Word): Line => ({ he: "מצוין!", en: w.en }),
+  /** After the child says a word right: short praise, never the word again. */
+  praise: (n = Math.floor(Math.random() * PRAISE.length)): Line => ({ en: PRAISE[n % PRAISE.length] }),
+  tryAgain: (): Line => ({ en: "Try again!" }),
   greatTry: (): Line => ({ he: "איזה ניסיון יפה!", en: "Great try!" }),
-  almostListen: (): Line => ({ he: "כמעט! הקשיבו ונסו שוב" }),
-  almostAgain: (): Line => ({ he: "כמעט! עוד פעם" }),
   letsLearn: (): Line => ({ he: "בואו נלמד את מילות הקסם!" }),
   wordIntro: (w: Word): Line => ({ he: `${w.he}. באנגלית אומרים:`, en: w.en }),
   restore: (c: Chapter): Line => ({ he: c.restoreLine }),
-  firstSound: (en: string): Line => ({ he: "באיזה צליל מתחילה המילה?", en }),
-  buildWord: (en: string): Line => ({ he: "בנו את המילה מהצלילים!", en }),
-  trainHint: (): Line => ({ he: "הקשיבו לצליל ונסו שוב" }),
-  trainShow: (): Line => ({ he: "הקרון הזוהר הוא הנכון!" }),
+  firstSound: (en: string): Line => ({ he: "באיזו אות מתחילה המילה?", en }),
+  buildWord: (en: string): Line => ({ he: "בנו את המילה מהאותיות!", en }),
+  trainHint: (): Line => ({ he: "הקשיבו למילה ונסו שוב" }),
+  trainShow: (): Line => ({ he: "האות הזוהרת היא הנכונה!" }),
   detectiveIntro: (): Line => ({ he: "לאיזו זכוכית מגדלת שייכת האות?" }),
   detectiveHint: (): Line => ({ he: "הסתכלו לאן פונה הבטן של האות, ונסו שוב" }),
   detectiveShow: (): Line => ({ he: "הבטן מראה לנו את הדרך!" }),
@@ -109,6 +108,8 @@ export const L = {
         },
 };
 
+const PRAISE = ["Great job!", "Great!", "Good job!"];
+
 /** Little situations for the greetings game, keyed by the word that fits. */
 export const GREET_SCENES: Record<string, { he: string; friend: string; prop?: string; action: "arrive" | "leave" | "give" | "offer" | "ask" }> = {
   hello: { he: "הארנבת הגיעה לבקר! מה אומרים כשנפגשים?", friend: "🐰", action: "arrive" },
@@ -138,10 +139,10 @@ export function allLines(): Line[] {
     ...ISLANDS.map((i) => L.islandDone(i)),
     L.missionDone(),
     L.wellDone(),
-    ...ALL_WORDS.flatMap((w) => [L.tryAgainWord(w), L.hereItIs(w), L.echoWord(w), L.excellent(w), L.wordIntro(w)]),
+    ...ALL_WORDS.flatMap((w) => [L.tryAgainWord(w), L.hereItIs(w), L.wordIntro(w)]),
+    ...PRAISE.map((_, i) => L.praise(i)),
+    L.tryAgain(),
     L.greatTry(),
-    L.almostListen(),
-    L.almostAgain(),
     L.letsLearn(),
     ...[...ALL_WORDS.map((w) => w.en), ...trainWords].flatMap((en) => [L.firstSound(en), L.buildWord(en)]),
     L.paintIntro(),

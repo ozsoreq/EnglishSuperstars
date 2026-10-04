@@ -30,8 +30,8 @@ The core promise is *"every word you learn makes your world bigger."* In this bu
 | Spec area | Implemented |
 |---|---|
 | Session flow | Welcome on the map (Luna greets her by name and names today's quest) → warm-up (only when at least 3 earlier words are due for review, and at most once a day) → story moment with 4–6 new words → practice → star moment (spend, or keep exploring) |
-| Game types | Bubble Pop, Say It to Luna, Sound Train (first sound + c-a-b blending), Memory Garden, b/d Detective, Paint the Picture (colours), Feed the Dolphin (hear a number, count fish), Letter Trace (write letters in stroke order), What Do We Say? (greeting scenes), plus the story moment. Each stage has its own signature game, a mission never repeats a game, and revisits rotate through the stage's games |
-| Feedback rules | No red X and no buzzer. A wrong answer makes the item wiggle and Luna gives a Hebrew hint. The second miss shows the answer and schedules the word for early review. Speaking gets 3 lenient tries, then "Great try!". The last activity of each mission ends with a celebration sized 1–3 |
+| Game types | Bubble Pop, Say It to Luna, Letter Train (first letter + spelling; tapping a letter says its name), Memory Garden, b/d Detective, Paint the Picture (colours), Feed the Dolphin (hear a number, count fish), Letter Trace (write letters in stroke order), What Do We Say? (greeting scenes), plus the story moment. Each stage has its own signature game, a mission never repeats a game, and revisits rotate through the stage's games |
+| Feedback rules | No red X and no buzzer. A wrong answer makes the item wiggle and Luna gives a Hebrew hint. The second miss shows the answer and schedules the word for early review. Speaking: the word is said once; a right answer gets "Great job!" (or "Great!" / "Good job!"), a miss gets "Try again!", and after 3 tries "Great try!". The last activity of each mission ends with a celebration sized 1–3 |
 | Spaced repetition | SM-2-style scheduler tuned for kids (`src/lib/srs.ts`). Only the first result of the day counts. Words go grey → silver → gold, and gold earns +2 |
 | Star economy | Append-only ledger with idempotency keys, earning-table validation, a 60/day cap and price validation (`src/lib/ledger.ts`). Covers the mission bonus, a streak with a weekly snow day, the island bonus, the weekly speaking challenge and parent bonus stars. Level 1–50 comes from lifetime stars, so spending never lowers it |
 | Spending | Gear (shown on the avatar), camp items (shown in the camp scene), pets (feeding for 2⭐ keeps them happy for 2 days; they never die, they just get sleepy; tricks by voice), real-world rewards with parent approval or refund, and saving goals shown in the jar |
@@ -86,7 +86,7 @@ Luna's voice is pre-recorded with natural neural voices and shipped as small MP3
 |---|---|
 | Luna in English, model words | Kokoro-82M `af_heart`, a warm adult female voice (Apache-2.0, generated offline) |
 | Child model voice in "Say It to Luna" | Kokoro `af_bella` |
-| Letter sounds | Kokoro from IPA phonemes, so /bə/ is a sound rather than "bee" |
+| Letter names | Kokoro, "l" is said "el" |
 | Luna in Hebrew | Google Cloud TTS he-IL (Chirp 3 HD, else Neural2/WaveNet), recorded once with `GOOGLE_TTS_API_KEY` |
 
 Kokoro tends to invent a short vowel in the silent padding before a word ("a-blue"). `voice:setup` builds a copy of the model that also outputs per-phoneme durations, and the generator cuts each clip at the first real phoneme.

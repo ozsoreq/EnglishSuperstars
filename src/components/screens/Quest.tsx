@@ -52,7 +52,7 @@ const GAME_NAMES: Record<ActivityType, { he: string; icon: string }> = {
   bubble: { he: "בועות קסם", icon: "🫧" },
   say: { he: "אומרים ללונה", icon: "🎤" },
   memory: { he: "גן הזיכרון", icon: "🌷" },
-  train: { he: "רכבת הצלילים", icon: "🚂" },
+  train: { he: "רכבת האותיות", icon: "🚂" },
   detective: { he: "הבלשית b/d", icon: "🔍" },
   story: { he: "מילות הקסם", icon: "✨" },
   paint: { he: "צובעים את התמונה", icon: "🎨" },

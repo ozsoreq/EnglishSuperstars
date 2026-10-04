@@ -272,6 +272,11 @@ export function saySound(letter: string): Promise<void> {
   return speak(letter, "en", { kind: "sound", fallbackText: LETTER_SOUNDS[letter] ?? letter });
 }
 
+/** A letter's name, e.g. "l" → "el" — what a child hears when tapping a letter. */
+export function sayLetter(letter: string): Promise<void> {
+  return speak(letter, "en", { kind: "letter", fallbackText: letter.toUpperCase() });
+}
+
 /** Warm the cache for lines and words coming up next (no-op without neural TTS). */
 export function preloadSpeech(items: { text: string; lang: Lang; kind?: TtsKind; voice?: TtsVoice }[]) {
   if (!voiceOn) return;

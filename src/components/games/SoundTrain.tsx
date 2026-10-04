@@ -1,26 +1,26 @@
 "use client";
 /**
- * Sound Train (phonics): hook letter-sound carriages onto the engine.
- * First-sound rounds ("which sound starts 🍎?") then blending rounds
- * (c-a-b → "cab!"). The train chugs off when the word blends.
+ * Sound Train (letters): hook letter carriages onto the engine.
+ * First-letter rounds ("which letter starts 🍋?") then spelling rounds
+ * (l-e-g → "leg!"). Tapping a letter says its name. The train chugs off
+ * when the word is complete.
  */
 import { AnimatePresence, m as motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { sfx, saySound, sayWord } from "@/lib/audio";
+import { sfx, sayLetter, sayWord } from "@/lib/audio";
 import { WORDS } from "@/lib/content/words";
 import { useDebug } from "@/lib/debug";
 import { L } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
 import { En } from "../En";
 import { Picture } from "../Picture";
-import { Pips, SpeakerButton, cheer, nudge, shuffle, useTracker, wait, type GameProps, useRounds } from "./shared";
+import { Pips, cheer, nudge, shuffle, useTracker, wait, type GameProps, useRounds } from "./shared";
 import { Emoji } from "@/components/Emoji";
 
 type Round =
   | { kind: "first"; key: string; wordId: string; pic: string; answer: string[]; options: string[]; en: string; he: string }
   | { kind: "build"; key: string; pic: string; answer: string[]; options: string[]; en: string; he: string };
 
-const CARRIAGE_COLORS = ["#FF8FA3", "#7FE3C4", "#B9A7F5", "#5AB8D6", "#FFC53D"];
 const A_TO_M = "abcdefghijklm".split("");
 
 function buildRounds(activity: GameProps["activity"], chapter: GameProps["chapter"]): Round[] {
@@ -79,7 +79,7 @@ export function SoundTrain({ activity, chapter, onDone }: GameProps) {
     // Carriages from a finished round can still be tapped while they animate out.
     if (roundRef.current !== round || busy.current || placed.includes(optIndex)) return;
     const letter = r.options[optIndex];
-    void saySound(letter);
+    void sayLetter(letter);
     const need = r.answer[placed.length];
     if (letter !== need) {
       setShake(optIndex);
@@ -100,7 +100,7 @@ export function SoundTrain({ activity, chapter, onDone }: GameProps) {
     tracker.finish(r.key, { wordId: r.kind === "first" ? r.wordId : undefined, shown: hint });
     await wait(300);
     if (r.kind === "build") {
-      for (const l of r.answer) await saySound(l);
+      for (const l of r.answer) await sayLetter(l);
     }
     setDeparting(true);
     sfx("chug");
@@ -110,46 +110,58 @@ export function SoundTrain({ activity, chapter, onDone }: GameProps) {
   };
 
   const needLetter = r.answer[placed.length];
+  const hear = () => void sayWord(r.en);
 
   return (
-    <div className="flex h-full w-full flex-col items-center gap-4">
+    <div className="flex h-full w-full flex-col items-center gap-5">
       <Pips done={round} total={rounds.length} />
-      <div className="flex items-center gap-4">
-        <SpeakerButton onClick={() => void sayWord(r.en)} />
-        <div className="chunky grid h-28 w-28 place-items-center bg-cream">
-          <Picture pic={r.pic} size={80} />
-        </div>
-      </div>
 
-      {/* Track + train, always left-to-right like English reading. */}
-      <div className="relative w-full max-w-xl overflow-hidden py-2" dir="ltr">
+      {/* The word to build: tap the picture to hear it. */}
+      <motion.button
+        type="button"
+        onClick={hear}
+        whileTap={{ scale: 0.92 }}
+        aria-label="להקשיב למילה"
+        className="chunky relative grid h-32 w-32 place-items-center bg-cream"
+      >
+        <Picture pic={r.pic} size={92} />
+        <span className="absolute -bottom-3 -end-3 grid h-11 w-11 place-items-center rounded-full bg-lavender text-xl shadow-md">
+          <Emoji e="🔊" />
+        </span>
+      </motion.button>
+
+      <p className="text-xl font-bold text-cream">{r.kind === "first" ? "באיזו אות מתחילה המילה?" : "בנו את המילה"}</p>
+
+      {/* The train, left-to-right like English reading. The next empty carriage glows. */}
+      <div className="overflow-hidden px-2" dir="ltr">
         <motion.div
-          className="flex items-end gap-1 px-2"
+          className="flex items-end gap-1.5"
           animate={{ x: departing && !reduce ? [0, 8, -700] : 0 }}
           transition={{ duration: 1.2, ease: "easeIn" }}
         >
-          <span className="text-6xl" aria-hidden>
-            <Emoji e="🚂" />
-          </span>
+          <Emoji e="🚂" size={56} />
           {r.answer.map((_, slot) => {
             const opt = placed[slot];
             const letter = opt !== undefined ? r.options[opt] : null;
+            const next = slot === placed.length;
             return (
               <motion.div
                 key={slot}
-                className="chunky grid h-20 w-16 place-items-center text-4xl font-bold text-night-deep"
-                style={{ background: letter ? CARRIAGE_COLORS[slot % CARRIAGE_COLORS.length] : "#ffffff18", borderStyle: letter ? "solid" : "dashed" }}
-                animate={letter ? { scale: [0.6, 1.1, 1] } : {}}
+                className={`grid h-16 w-14 place-items-center rounded-2xl text-4xl font-bold text-night-deep ${
+                  letter ? "bg-gold" : next ? "border-2 border-mint bg-mint/10" : "border-2 border-white/15"
+                }`}
+                animate={letter ? { scale: [0.6, 1.1, 1] } : next && !reduce ? { opacity: [0.6, 1, 0.6] } : {}}
+                transition={next && !letter ? { duration: 1.4, repeat: Infinity } : undefined}
               >
                 {letter && <En>{letter}</En>}
               </motion.div>
             );
           })}
         </motion.div>
-        <div className="mx-2 mt-1 h-2 rounded-full bg-[#8b6b4a]" />
+        <div className="mt-1 h-1.5 rounded-full bg-[#8b6b4a]" />
       </div>
 
-      {/* Carriage yard */}
+      {/* Letters to choose from — all alike, so only the letter matters. */}
       <div className="flex flex-wrap justify-center gap-3" dir="ltr">
         <AnimatePresence>
           {r.options.map((l, i) =>
@@ -158,11 +170,8 @@ export function SoundTrain({ activity, chapter, onDone }: GameProps) {
                 key={`${round}-${i}`}
                 type="button"
                 onClick={(e) => tapCarriage(i, e.currentTarget)}
-                className="chunky grid h-20 w-20 place-items-center text-5xl font-bold text-night-deep"
-                style={{
-                  background: CARRIAGE_COLORS[i % CARRIAGE_COLORS.length],
-                  boxShadow: hint && l === needLetter ? "0 0 28px 8px #FFC53D" : undefined,
-                }}
+                className="chunky grid h-20 w-20 place-items-center bg-cream text-5xl font-bold text-night-deep"
+                style={{ boxShadow: hint && l === needLetter ? "0 0 28px 8px #FFC53D" : undefined }}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1, x: shake === i ? [0, -10, 10, -6, 6, 0] : 0 }}
                 exit={{ scale: 0, y: -40 }}
@@ -176,9 +185,6 @@ export function SoundTrain({ activity, chapter, onDone }: GameProps) {
           )}
         </AnimatePresence>
       </div>
-      <p className="text-center text-base text-cream/80">
-        {r.kind === "first" ? "לחצו על הקרון עם הצליל הראשון" : "חברו את הקרונות לפי הסדר, משמאל לימין"}
-      </p>
       <span className="sr-only">{r.he}</span>
     </div>
   );

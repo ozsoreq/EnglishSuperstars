@@ -7,7 +7,7 @@
  */
 import { m as motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { saySound, sayWord, sfx } from "@/lib/audio";
+import { sayLetter, sayWord, sfx } from "@/lib/audio";
 import { ALL_WORDS } from "@/lib/content/words";
 import { useDebug } from "@/lib/debug";
 import { emit } from "@/lib/events";
@@ -72,8 +72,8 @@ export function LetterTrace({ activity, chapter, onDone }: GameProps) {
     if (!letter) return;
     setReached(0);
     finished.current = false;
-    if (round === 0) void lunaSay(L.traceIntro()).then(() => saySound(letter));
-    else void saySound(letter);
+    if (round === 0) void lunaSay(L.traceIntro()).then(() => sayLetter(letter));
+    else void sayLetter(letter);
   }, [letter, round]);
 
   const complete = async () => {
@@ -83,7 +83,7 @@ export function LetterTrace({ activity, chapter, onDone }: GameProps) {
     cheer(svg.current, anchor?.id);
     if (anchor) tracker.finish(anchor.id);
     else tracker.finish(letter);
-    await saySound(letter);
+    await sayLetter(letter);
     if (anchor) await sayWord(anchor.en);
     await wait(500);
     advance(mine);

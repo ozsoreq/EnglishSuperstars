@@ -34,7 +34,7 @@ PACK_TS = ROOT / "src" / "lib" / "voice-pack.ts"
 LINES = ROOT / "scripts" / "voice" / "lines.json"
 
 EN_VOICES = {"guide": "af_heart", "child": "af_bella"}
-EN_SPEED = {"line": 0.92, "word": 0.82, "sound": 0.8}
+EN_SPEED = {"line": 0.92, "word": 0.82, "sound": 0.8, "letter": 0.85}
 SR = 24_000
 
 
@@ -63,7 +63,7 @@ def tidy(audio: np.ndarray) -> np.ndarray:
 def plausible(audio: np.ndarray, clip: dict) -> bool:
     """Catch Kokoro's occasional empty or truncated outputs."""
     secs = len(audio) / SR
-    if clip["kind"] == "sound":
+    if clip["kind"] in ("sound", "letter"):
         return secs >= 0.2
     letters = sum(ch.isalpha() for ch in clip["text"])
     return secs >= max(0.3, 0.045 * letters) and float(np.sqrt(np.mean(audio**2))) > 0.01
@@ -126,7 +126,11 @@ class KokoroEnglish:
     def synth(self, clip: dict) -> np.ndarray:
         voice = EN_VOICES[clip["voice"]]
         speed = EN_SPEED[clip["kind"]]
-        phonemes = clip["ipa"] if clip["kind"] == "sound" else self.tokenizer.phonemize(clip["text"], "en-us")
+        if clip["kind"] == "sound":
+            phonemes = clip["ipa"]
+        else:
+            # Letter names are recorded from the capital letter ("L" → "el").
+            phonemes = self.tokenizer.phonemize(clip.get("spoken") or clip["text"], "en-us")
         # Takes to try, best first. The fp16 model occasionally returns NaN
         # for one speed/style pair; a nearby pair is fine.
         attempts = [(speed + ds, off) for ds in (0, -0.02, 0.03, -0.05, 0.06) for off in (0, 1)]

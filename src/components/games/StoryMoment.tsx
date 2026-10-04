@@ -44,8 +44,8 @@ export function StoryMoment({ activity, chapter, onDone }: GameProps) {
       await wait(500);
       if (i === 0) await lunaSay(L.letsLearn());
       if (cancelled) return;
+      // The intro already ends with the English word — say it once.
       await lunaSay(L.wordIntro(w));
-      await sayWord(w.en);
       if (!cancelled) setStep("say");
     })();
     return () => {
@@ -86,7 +86,7 @@ export function StoryMoment({ activity, chapter, onDone }: GameProps) {
         if (!recognized.current.includes(id)) recognized.current.push(id);
       }
       emit("answer.correct", { wordId: id });
-      await lunaSay(L.excellent(w));
+      await lunaSay(L.praise());
       void finishWord(true);
       return;
     }
@@ -97,8 +97,7 @@ export function StoryMoment({ activity, chapter, onDone }: GameProps) {
       await lunaSay(L.greatTry());
       void finishWord(true);
     } else {
-      await lunaSay(L.almostAgain());
-      await sayWord(w.en);
+      await lunaSay(L.tryAgain());
     }
   };
 

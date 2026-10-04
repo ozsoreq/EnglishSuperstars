@@ -51,7 +51,7 @@ export function SayIt({ activity, onDone }: GameProps) {
       cheer(document.getElementById("say-card"), id);
       if (recognized) tracker.spoke(id);
       tracker.finish(id);
-      await lunaSay(L.echoWord(w));
+      await lunaSay(L.praise());
       await advance();
       return;
     }
@@ -63,9 +63,7 @@ export function SayIt({ activity, onDone }: GameProps) {
       tracker.finish(id);
       await advance();
     } else {
-      await lunaSay(L.almostListen());
-      setPlay((p) => p + 1);
-      await hearWord(id, "child");
+      await lunaSay(L.tryAgain());
       handling.current = false;
       setBusy(false);
     }

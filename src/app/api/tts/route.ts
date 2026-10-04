@@ -1,5 +1,5 @@
 /**
- * GET /api/tts?text=&lang=he|en&kind=line|word|sound&voice=guide|child
+ * GET /api/tts?text=&lang=he|en&kind=line|word|sound|letter&voice=guide|child
  *
  * Synthesises speech with Azure AI Speech neural voices and returns MP3.
  * Responses are immutable for a given URL, so Vercel's CDN (and the app's
