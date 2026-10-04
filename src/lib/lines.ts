@@ -70,6 +70,24 @@ export const L = {
   detectiveHint: (): Line => ({ he: "הסתכלו לאן פונה הבטן של האות, ונסו שוב" }),
   detectiveShow: (): Line => ({ he: "הבטן מראה לנו את הדרך!" }),
 
+  // Paint the Picture
+  paintIntro: (): Line => ({ he: "הקשיבו לצבע, טבלו את המכחול וצבעו את החלק הנוצץ!" }),
+  paintDone: (): Line => ({ he: "איזו יצירה! כל הצבעים במקום.", en: "Beautiful!" }),
+
+  // Feed the Dolphin (counting)
+  countAsk: (w: Word): Line => ({ he: "כמה דגים? הקשיבו:", en: w.en }),
+  countMore: (): Line => ({ he: "עוד לא! הקשיבו שוב והוסיפו דגים." }),
+  countLess: (): Line => ({ he: "יותר מדי! לחצו על דג בדלי כדי להחזיר אותו." }),
+  countTogether: (): Line => ({ he: "בואו נספור יחד!" }),
+  countYum: (): Line => ({ he: "יאמי! בדיוק נכון.", en: "Yummy!" }),
+
+  // Letter Trace
+  traceIntro: (): Line => ({ he: "התחילו מהנקודה הגדולה וציירו לפי הסדר." }),
+  traceNext: (): Line => ({ he: "הנקודה הנוצצת היא הבאה בתור!" }),
+
+  // What Do We Say? (greetings scenes)
+  greetScene: (wordId: string): Line => ({ he: GREET_SCENES[wordId]?.he ?? "מה אומרים?" }),
+
   // Camp
   bought: (it: Named): Line => ({ he: `יש! ${it.he} שלכם לתמיד!`, en: it.en }),
   needMoreStars: (it: Named): Line => ({ he: `עוד קצת כוכבים! אפשר לחסוך ל${it.he} — לחצו על הצנצנת שליד.` }),
@@ -91,12 +109,22 @@ export const L = {
         },
 };
 
+/** Little situations for the greetings game, keyed by the word that fits. */
+export const GREET_SCENES: Record<string, { he: string; friend: string; prop?: string; action: "arrive" | "leave" | "give" | "offer" | "ask" }> = {
+  hello: { he: "הארנבת הגיעה לבקר! מה אומרים כשנפגשים?", friend: "🐰", action: "arrive" },
+  goodbye: { he: "הדוב הולך הביתה. מה אומרים כשנפרדים?", friend: "🐻", action: "leave" },
+  "thank-you": { he: "הינשוף הביא לכם מתנה! מה אומרים?", friend: "🦉", prop: "🎁", action: "give" },
+  yes: { he: "הדולפינה שואלת: רוצים עוגייה? אתם רוצים! מה עונים?", friend: "🐬", prop: "🍪", action: "offer" },
+  no: { he: "הקוף שואל: רוצים לאכול בצל? ממש לא! מה עונים?", friend: "🐵", prop: "🧅", action: "offer" },
+  ok: { he: "החתול שואל אם הכול בסדר. הכול טוב! מה עונים?", friend: "🐱", action: "ask" },
+};
+
 /** Every line Luna can say, expanded over all content — the recording script's input. */
 export function allLines(): Line[] {
   const chapters = ISLANDS.flatMap((i) => i.chapters);
   const items: Named[] = ALL_ITEMS;
   const trainWords = chapters.flatMap((c) => (c.trainWords ?? []).map((t) => t.word));
-  const games: GameType[] = ["bubble", "say", "train", "memory", "detective"];
+  const games: GameType[] = ["bubble", "say", "train", "memory", "detective", "paint", "count", "trace", "greet"];
   const name = "";
   return [
     L.meetLuna(),
@@ -116,6 +144,16 @@ export function allLines(): Line[] {
     L.almostAgain(),
     L.letsLearn(),
     ...[...ALL_WORDS.map((w) => w.en), ...trainWords].flatMap((en) => [L.firstSound(en), L.buildWord(en)]),
+    L.paintIntro(),
+    L.paintDone(),
+    ...ALL_WORDS.filter((w) => w.theme === "numbers").map((w) => L.countAsk(w)),
+    L.countMore(),
+    L.countLess(),
+    L.countTogether(),
+    L.countYum(),
+    L.traceIntro(),
+    L.traceNext(),
+    ...Object.keys(GREET_SCENES).map((id) => L.greetScene(id)),
     L.trainHint(),
     L.trainShow(),
     L.detectiveIntro(),

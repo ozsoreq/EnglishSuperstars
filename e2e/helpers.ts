@@ -149,6 +149,31 @@ export async function playUntilRestored(page: Page, opts: { mistakes?: boolean; 
       await page.waitForTimeout(600);
       continue;
     }
+    // Feed the Dolphin: feed exactly the asked number, then done.
+    const counter = page.locator("[data-qa-count]");
+    if (await counter.count()) {
+      const n = Number(await counter.getAttribute("data-qa-count"));
+      const fed = await page.locator('button[aria-label="להחזיר דג"]').count();
+      if (fed < n) await page.locator('[data-qa="fish"]').first().click({ timeout: 1500, force: true }).catch(() => {});
+      else if (fed > n) await page.locator('button[aria-label="להחזיר דג"]').first().click({ timeout: 1500, force: true }).catch(() => {});
+      else {
+        await page.locator('[data-qa="done"]').click({ timeout: 1500, force: true }).catch(() => {});
+        await page.waitForTimeout(900);
+      }
+      await page.waitForTimeout(150);
+      continue;
+    }
+    // Letter Trace: tap the dots in order.
+    const dot0 = page.locator('[data-qa="dot-0"]');
+    if (await dot0.count()) {
+      const dots = await page.locator('[data-qa^="dot-"]').count();
+      for (let i = 0; i < dots; i++) {
+        await page.locator(`[data-qa="dot-${i}"]`).click({ timeout: 1500, force: true }).catch(() => {});
+        await page.waitForTimeout(60);
+      }
+      await page.waitForTimeout(1200);
+      continue;
+    }
     const wrong = page.locator('[data-qa="wrong"]');
     const answer = page.locator('[data-qa="answer"]');
     if (opts.mistakes && erred < 2 && (await wrong.count())) {

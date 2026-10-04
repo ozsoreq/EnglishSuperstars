@@ -16,7 +16,7 @@ import { L } from "@/lib/lines";
 import { lunaSay } from "@/lib/luna";
 import type { QuestOverride } from "@/lib/debug";
 import { buildMission, starsFor, type ActivityResult } from "@/lib/mission";
-import { completeActivity, completeMission, type MissionReward, type Profile } from "@/lib/store";
+import { completeActivity, completeMission, markWarmedUp, type MissionReward, type Profile } from "@/lib/store";
 import { Btn } from "../Btn";
 import { En } from "../En";
 import { Caption } from "../Caption";
@@ -28,6 +28,10 @@ import { MemoryGarden } from "../games/MemoryGarden";
 import { SayIt } from "../games/SayIt";
 import { SoundTrain } from "../games/SoundTrain";
 import { StoryMoment } from "../games/StoryMoment";
+import { PaintPicture } from "../games/PaintPicture";
+import { FeedDolphin } from "../games/FeedDolphin";
+import { LetterTrace } from "../games/LetterTrace";
+import { GreetTalk } from "../games/GreetTalk";
 import type { GameProps } from "../games/shared";
 import { Emoji } from "@/components/Emoji";
 
@@ -38,6 +42,10 @@ const GAMES: Record<ActivityType, (p: GameProps) => React.ReactNode> = {
   train: SoundTrain,
   detective: Detective,
   story: StoryMoment,
+  paint: PaintPicture,
+  count: FeedDolphin,
+  trace: LetterTrace,
+  greet: GreetTalk,
 };
 
 const GAME_NAMES: Record<ActivityType, { he: string; icon: string }> = {
@@ -47,6 +55,10 @@ const GAME_NAMES: Record<ActivityType, { he: string; icon: string }> = {
   train: { he: "רכבת הצלילים", icon: "🚂" },
   detective: { he: "הבלשית b/d", icon: "🔍" },
   story: { he: "מילות הקסם", icon: "✨" },
+  paint: { he: "צובעים את התמונה", icon: "🎨" },
+  count: { he: "מאכילים את הדולפינה", icon: "🐟" },
+  trace: { he: "מציירים אותיות", icon: "✍️" },
+  greet: { he: "מה אומרים?", icon: "💬" },
 };
 
 const ROLE_NAMES = { warmup: "חימום", new: "מילים חדשות", practice: "אימון" } as const;
@@ -77,7 +89,7 @@ export function Quest({
     () =>
       override?.only
         ? [{ type: override.only, role: override.only === "story" ? ("new" as const) : ("practice" as const), words: chapter.words }]
-        : buildMission(chapter, profile.memory, dayKey(), visits),
+        : buildMission(chapter, profile.memory, dayKey(), visits, { warmedUpToday: profile.lastWarmup === dayKey() }),
     // Build once per quest.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [missionId],
@@ -127,6 +139,7 @@ export function Quest({
     if (handledSteps.current.has(step)) return;
     handledSteps.current.add(step);
     const r = completeActivity(missionId, step, result);
+    if (activities[step].role === "warmup") markWarmedUp();
     const total = r.stars + r.speakStars + r.masteredStars;
     setEarned((e) => e + total);
     setStepStars((s) => [...s, starsFor(result)]);

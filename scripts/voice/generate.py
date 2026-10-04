@@ -70,9 +70,18 @@ def plausible(audio: np.ndarray, clip: dict) -> bool:
 
 
 class KokoroEnglish:
+    """
+    Runs Kokoro directly (not via kokoro_onnx.create) on a model that also
+    returns per-token durations. Kokoro renders the leading padding token as
+    ~0.5 s that often contains an invented vowel ("a-blue"); we cut the audio
+    exactly where the first real phoneme starts, and trim the trailing pad.
+    """
+
+    FRAME = 600  # samples per duration frame at 24 kHz
+
     def __init__(self) -> None:
         import onnxruntime as ort
-        from kokoro_onnx import Kokoro
+        from kokoro_onnx.tokenizer import Tokenizer
 
         voices = CACHE / "voices"
         npz = CACHE / "voices.npz"
@@ -84,22 +93,49 @@ class KokoroEnglish:
                     for f in voices.glob("*.bin")
                 },
             )
-        session = ort.InferenceSession(str(CACHE / "kokoro-fp16.onnx"), providers=["CPUExecutionProvider"])
-        self.k = Kokoro.from_session(session, str(npz))
+        self.voices = np.load(npz)
+        self.tokenizer = Tokenizer()
+        model = CACHE / "kokoro-fp16-dur.onnx"
+        if not model.exists():
+            raise SystemExit("Run `npm run voice:setup` first (builds kokoro-fp16-dur.onnx).")
+        self.sess = ort.InferenceSession(str(model), providers=["CPUExecutionProvider"])
+
+    def _run(self, phonemes: str, voice: str, speed: float, style_offset: int = 0) -> np.ndarray:
+        tokens = self.tokenizer.tokenize(phonemes)
+        if not tokens:
+            raise RuntimeError(f"No phonemes for {phonemes!r}")
+        style = self.voices[voice][min(max(len(tokens) + style_offset, 1), 510) - 1]
+        wav, dur = self.sess.run(
+            None,
+            {
+                "input_ids": np.array([[0, *tokens, 0]], dtype=np.int64),
+                "style": style.astype(np.float32),
+                "speed": np.array([speed], dtype=np.float32),
+            },
+        )
+        wav = np.asarray(wav, dtype=np.float32).ravel()
+        if not np.isfinite(wav).all():
+            return np.zeros(0, dtype=np.float32)  # fp16 overflow on this take — caller retries
+        dur = np.asarray(dur).ravel().astype(int)
+        # Keep 1 frame before the first phoneme for a natural onset, and
+        # 4 frames of the end pad for the final consonant's release.
+        start = max(0, dur[0] - 1) * self.FRAME
+        end = min(len(wav), (int(dur[:-1].sum()) + min(4, int(dur[-1]))) * self.FRAME)
+        return wav[start:end]
 
     def synth(self, clip: dict) -> np.ndarray:
         voice = EN_VOICES[clip["voice"]]
         speed = EN_SPEED[clip["kind"]]
-        if clip["kind"] == "sound":
-            attempts = [dict(text=clip["ipa"], is_phonemes=True, speed=speed), dict(text=clip["ipa"], is_phonemes=True, speed=0.7)]
-        else:
-            text = clip["text"]
-            attempts = [dict(text=text, speed=speed), dict(text=text, speed=speed - 0.05), dict(text=text.rstrip(".!?") + ".", speed=speed)]
+        phonemes = clip["ipa"] if clip["kind"] == "sound" else self.tokenizer.phonemize(clip["text"], "en-us")
+        # Takes to try, best first. The fp16 model occasionally returns NaN
+        # for one speed/style pair; a nearby pair is fine.
+        attempts = [(speed + ds, off) for ds in (0, -0.02, 0.03, -0.05, 0.06) for off in (0, 1)]
         last = np.zeros(0, dtype=np.float32)
-        for a in attempts:
-            audio, sr = self.k.create(voice=voice, lang="en-us", **a)
-            assert sr == SR
-            last = tidy(audio)
+        for sp, off in attempts:
+            raw = self._run(phonemes, voice, sp, off)
+            if not raw.size:
+                continue
+            last = tidy(raw)
             if plausible(last, clip):
                 return last
         raise RuntimeError(f"Kokoro produced implausible audio for {clip['text']!r} ({len(last) / SR:.2f}s)")

@@ -8,6 +8,7 @@ export const VOICE_PACK: ReadonlySet<string> = new Set([
   "02efa93c67984a18",
   "04191ccd6ca9c070",
   "041a89d34e33f20d",
+  "04b9a5b823025e66",
   "04c26b9ff6e11ad8",
   "06b35236202488a0",
   "06b364362024a736",

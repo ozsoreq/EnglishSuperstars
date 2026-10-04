@@ -68,6 +68,8 @@ export interface Profile {
   speakScores: { day: string; word: string; ok: boolean }[];
   requests: RewardRequest[];
   levelSeen: number;
+  /** Day of the last warm-up, so warm-ups happen at most once a day. */
+  lastWarmup?: string;
 }
 
 export interface ParentReward {
@@ -340,6 +342,10 @@ export function completeActivity(missionId: string, step: number, result: Activi
   if (weekly >= WEEKLY_SPEAK_GOAL) masteredStars += grant("weekly", 15, `weekly:${week}`);
 
   return { stars, speakStars, masteredStars, newlyGold };
+}
+
+export function markWarmedUp() {
+  updateActive((p) => ({ ...p, lastWarmup: dayKey() }));
 }
 
 export function logSpeech(word: string, ok: boolean) {

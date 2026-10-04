@@ -16,7 +16,7 @@ export interface Word {
   letter?: string;
 }
 
-export type GameType = "bubble" | "say" | "train" | "memory" | "detective";
+export type GameType = "bubble" | "say" | "train" | "memory" | "detective" | "paint" | "count" | "trace" | "greet";
 export type ActivityType = GameType | "story";
 
 export interface Bilingual {

@@ -40,3 +40,41 @@ describe("starsFor", () => {
     expect(starsFor({ firstTry: 5, total: 5, quality: {}, spoken: [] })).toBe(3);
   });
 });
+
+describe("warm-ups and variety", () => {
+  const reviewedOn = (ids: string[], day: string) => Object.fromEntries(ids.map((w) => [w, review(undefined, 5, day)]));
+
+  it("skips the warm-up when earlier words aren't due yet (played today)", () => {
+    const memory = reviewedOn(den.words, today); // due tomorrow
+    const m = buildMission(falls, memory, today, 0);
+    expect(m.some((a) => a.role === "warmup")).toBe(false);
+    expect(m[0]).toMatchObject({ type: "story" });
+  });
+
+  it("warms up at most once a day", () => {
+    const memory = reviewedOn(den.words, "2026-10-01");
+    expect(buildMission(falls, memory, today, 0)[0].role).toBe("warmup");
+    expect(buildMission(falls, memory, today, 0, { warmedUpToday: true }).some((a) => a.role === "warmup")).toBe(false);
+  });
+
+  it("needs at least 3 due words for a warm-up", () => {
+    const memory = reviewedOn(den.words.slice(0, 2), "2026-10-01");
+    expect(buildMission(falls, memory, today, 0).some((a) => a.role === "warmup")).toBe(false);
+  });
+
+  it("never repeats a game in one mission, and rotates on revisits", () => {
+    for (const ch of ISLANDS[0].chapters) {
+      for (let v = 0; v < 4; v++) {
+        const types = buildMission(ch, {}, today, v).map((a) => a.type);
+        expect(new Set(types).size).toBe(types.length);
+      }
+      const firstGames = [0, 1, 2].map((v) => buildMission(ch, {}, today, v + 1)[0].type);
+      expect(new Set(firstGames).size).toBeGreaterThan(1);
+    }
+  });
+
+  it("leads each stage's first practice with its own signature game", () => {
+    const sig = Object.fromEntries(ISLANDS[0].chapters.map((c) => [c.id, buildMission(c, {}, today, 0)[1].type]));
+    expect(sig).toMatchObject({ "luna-den": "greet", "rainbow-falls": "paint", "counting-rocks": "count", "echo-cave": "trace", "lighthouse": "trace" });
+  });
+});

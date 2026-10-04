@@ -1,22 +1,23 @@
 /**
  * Builds a mission: three activities for one stop on the adventure path.
  *
- *   1. Warm-up  — a quick game with words due for review
- *   2. New words — the story moment that restores the place
- *   3. Practice — a game with the new words
- *
- * A child who hasn't met any words yet skips the warm-up and gets two
- * practice games. Revisiting a restored place swaps the story for practice.
+ *   • Warm-up  — only when at least 3 words from earlier stages are truly due
+ *                for review (spaced repetition), and at most once a day.
+ *   • New words — the story moment that restores the place (first visit).
+ *   • Practice — this stage's own games, never the same game twice in one
+ *                mission, rotating across visits.
  */
 import type { ActivityType, Chapter, GameType } from "./content/types";
 import { WORDS } from "./content/words";
-import { dueWords, strength, type WordMemory } from "./srs";
+import { dueWords, type WordMemory } from "./srs";
 
 export interface Activity {
   type: ActivityType;
   role: "warmup" | "new" | "practice";
   words: string[];
 }
+
+const ofTheme = (words: string[], theme: string) => words.filter((id) => WORDS[id]?.theme === theme);
 
 /** Games that work for a given set of words. */
 export function gameFits(game: GameType, words: string[], chapter: Chapter): boolean {
@@ -25,6 +26,14 @@ export function gameFits(game: GameType, words: string[], chapter: Chapter): boo
       return Boolean(chapter.letters?.length);
     case "detective":
       return Boolean(chapter.letters?.some((l) => l === "b" || l === "d"));
+    case "trace":
+      return Boolean(chapter.letters?.length);
+    case "paint":
+      return ofTheme(words, "colors").length >= 2;
+    case "count":
+      return ofTheme(words, "numbers").length >= 2;
+    case "greet":
+      return ofTheme(words, "greetings").length >= 3;
     case "memory":
       return words.length >= 3;
     default:
@@ -32,43 +41,49 @@ export function gameFits(game: GameType, words: string[], chapter: Chapter): boo
   }
 }
 
+/** Fewer due words than this and the mission skips the warm-up. */
+export const MIN_WARMUP_WORDS = 3;
+
 const WARMUP_GAMES: GameType[] = ["bubble", "memory", "say"];
+
+export interface MissionOptions {
+  /** A warm-up was already played today. */
+  warmedUpToday?: boolean;
+}
 
 export function buildMission(
   chapter: Chapter,
   memory: Record<string, WordMemory>,
   today: string,
   visits: number,
+  opts: MissionOptions = {},
 ): Activity[] {
   const newWords = chapter.words;
   const revisit = visits > 0;
 
-  // Warm-up words: due words from elsewhere, else the weakest words met so far.
-  const elsewhere = (ids: string[]) => ids.filter((id) => !newWords.includes(id) && WORDS[id]);
-  let warm = elsewhere(dueWords(memory, today)).slice(0, 4);
-  if (warm.length < 3) {
-    const weakest = elsewhere(Object.keys(memory))
-      .filter((id) => !warm.includes(id))
-      .sort((a, b) => strength(memory[a]) - strength(memory[b]));
-    warm = [...warm, ...weakest].slice(0, 4);
-  }
-  if (revisit && warm.length < 3) warm = newWords.slice(0, 4);
+  // This stage's games, rotated so each visit leads with a different one.
+  const fitting = chapter.games.filter((g) => gameFits(g, newWords, chapter));
+  const rotated = fitting.map((_, i) => fitting[(i + visits) % fitting.length]);
 
-  const practiceGames = chapter.games.filter((g) => gameFits(g, newWords, chapter));
-  const pick = (offset: number) => practiceGames[(visits + offset) % practiceGames.length];
+  const due = dueWords(memory, today).filter((id) => !newWords.includes(id) && WORDS[id]);
+  const warmup = !opts.warmedUpToday && due.length >= MIN_WARMUP_WORDS;
 
-  const story: Activity = { type: "story", role: "new", words: newWords };
-  const practice = (offset: number): Activity => ({ type: pick(offset), role: "practice", words: newWords });
+  const acts: Activity[] = [];
+  if (!revisit) acts.push({ type: "story", role: "new", words: newWords });
 
-  if (warm.length === 0) {
-    return [story, practice(0), practice(1)];
+  const practiceSlots = 3 - acts.length - (warmup ? 1 : 0);
+  for (let i = 0; i < practiceSlots; i++) {
+    const unused = rotated.find((g) => !acts.some((a) => a.type === g));
+    acts.push({ type: unused ?? rotated[i % rotated.length], role: "practice", words: newWords });
   }
 
-  const warmGame = WARMUP_GAMES.filter((g) => gameFits(g, warm, chapter))[visits % 2] ?? "bubble";
-  const warmup: Activity = { type: warmGame, role: "warmup", words: warm };
-
-  if (revisit) return [warmup, practice(0), practice(1)];
-  return [warmup, story, practice(0)];
+  if (warmup) {
+    const words = due.slice(0, 4);
+    const options = WARMUP_GAMES.filter((g) => gameFits(g, words, chapter) && !acts.some((a) => a.type === g));
+    const type = options[visits % Math.max(1, options.length)] ?? "bubble";
+    acts.unshift({ type, role: "warmup", words });
+  }
+  return acts;
 }
 
 export interface ActivityResult {

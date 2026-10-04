@@ -20,7 +20,7 @@ The core promise is *"every word you learn makes your world bigger."* In this bu
 - **An explorable island.** Sound Shore is a map with 8 places along a winding path that runs right to left in Hebrew mode. The child's explorer walks between places with her gear and pet companion. Places she hasn't reached are hidden in fog.
 - **Each place is a quest with a problem.** At Rainbow Falls the waterfall has lost its colours. At Counting Rocks the stepping stones have sunk. At Echo Cave the echo has forgotten its sounds. At the lighthouse the light has gone out and Dolly the dolphin is lost. Luna tells the problem in Hebrew, then in English.
 - **The words do the fixing.** In the story moment, each new word is heard, then said, then read. The word then flies into the scene and brings part of the place back: grey becomes colour.
-- **Challenges are quest steps.** Each mission is three challenge stones (warm-up, new words, practice), shown as a path. Each game has a story line: pop the colour bubbles to refill the rainbow, hook sound carriages onto the shell train, sort letters with the detective's magnifying glass.
+- **Challenges are quest steps.** Each mission is three challenge stones, shown as a path: the story moment (first visit only), then practice games, with a warm-up stone in front only when review is really due. Each game has a story line: pop the colour bubbles to refill the rainbow, hook sound carriages onto the shell train, sort letters with the detective's magnifying glass.
 - **Rewards from the world.** Restoring a place gives a treasure for the Explorer's Backpack. The golden path unrolls to the next place and the fog lifts. Finishing the island gives the trophy, +50 stars and a fireworks finale.
 - **The sea chart.** All six islands from the curriculum appear, each with its friend (owl, bear, bunny baker, cat, unicorn). Islands 2–6 wait under fog for later releases.
 - **Explorer's Camp.** Stars buy gear the explorer wears on the map, camp builds (up to a castle), pets that follow her on the adventure and learn spoken English tricks, and the parent's real-world wishes.
@@ -29,8 +29,8 @@ The core promise is *"every word you learn makes your world bigger."* In this bu
 
 | Spec area | Implemented |
 |---|---|
-| Session flow | Welcome on the map (Luna greets her by name and names today's quest) → warm-up with due review words → story moment with 4–6 new words → practice → star moment (spend, or keep exploring) |
-| Game types | Bubble Pop, Say It to Luna, Sound Train (first sound + c-a-b blending), Memory Garden, b/d Detective, plus the story moment |
+| Session flow | Welcome on the map (Luna greets her by name and names today's quest) → warm-up (only when at least 3 earlier words are due for review, and at most once a day) → story moment with 4–6 new words → practice → star moment (spend, or keep exploring) |
+| Game types | Bubble Pop, Say It to Luna, Sound Train (first sound + c-a-b blending), Memory Garden, b/d Detective, Paint the Picture (colours), Feed the Dolphin (hear a number, count fish), Letter Trace (write letters in stroke order), What Do We Say? (greeting scenes), plus the story moment. Each stage has its own signature game, a mission never repeats a game, and revisits rotate through the stage's games |
 | Feedback rules | No red X and no buzzer. A wrong answer makes the item wiggle and Luna gives a Hebrew hint. The second miss shows the answer and schedules the word for early review. Speaking gets 3 lenient tries, then "Great try!". The last activity of each mission ends with a celebration sized 1–3 |
 | Spaced repetition | SM-2-style scheduler tuned for kids (`src/lib/srs.ts`). Only the first result of the day counts. Words go grey → silver → gold, and gold earns +2 |
 | Star economy | Append-only ledger with idempotency keys, earning-table validation, a 60/day cap and price validation (`src/lib/ledger.ts`). Covers the mission bonus, a streak with a weekly snow day, the island bonus, the weekly speaking challenge and parent bonus stars. Level 1–50 comes from lifetime stars, so spending never lowers it |
@@ -88,6 +88,8 @@ Luna's voice is pre-recorded with natural neural voices and shipped as small MP3
 | Child model voice in "Say It to Luna" | Kokoro `af_bella` |
 | Letter sounds | Kokoro from IPA phonemes, so /bə/ is a sound rather than "bee" |
 | Luna in Hebrew | Google Cloud TTS he-IL (Chirp 3 HD, else Neural2/WaveNet), recorded once with `GOOGLE_TTS_API_KEY` |
+
+Kokoro tends to invent a short vowel in the silent padding before a word ("a-blue"). `voice:setup` builds a copy of the model that also outputs per-phoneme durations, and the generator cuts each clip at the first real phoneme.
 
 **Recording the pack**
 

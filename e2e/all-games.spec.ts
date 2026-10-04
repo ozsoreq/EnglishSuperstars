@@ -15,10 +15,14 @@ const LABEL: Record<string, string> = {
   memory: "Memory",
   train: "Sound Train",
   detective: "b/d Detective",
+  paint: "Paint",
+  count: "Feed the Dolphin",
+  trace: "Letter Trace",
+  greet: "What Do We Say?",
 };
 
 for (const chapter of ISLANDS[0].chapters) {
-  const games = ["story", "bubble", "say", "memory", "train", "detective"].filter(
+  const games = ["story", "bubble", "say", "memory", "train", "detective", "paint", "count", "trace", "greet"].filter(
     (g) => g === "story" || gameFits(g as GameType, chapter.words, chapter),
   );
   for (const game of games) {
@@ -29,7 +33,7 @@ for (const chapter of ISLANDS[0].chapters) {
       await openDebugPanel(page);
       await page
         .locator("aside div.border-t", { hasText: chapter.name.en })
-        .getByRole("button", { name: new RegExp(`^\\S*\\s*${LABEL[game].replace("/", "\\/")}$`) })
+        .getByRole("button", { name: LABEL[game], exact: true })
         .click();
       await startQuest(page);
       await playUntilRestored(page);

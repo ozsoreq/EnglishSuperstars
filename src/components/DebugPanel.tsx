@@ -29,6 +29,10 @@ const GAMES: { type: ActivityType; label: string; icon: string }[] = [
   { type: "memory", label: "Memory", icon: "🌷" },
   { type: "train", label: "Sound Train", icon: "🚂" },
   { type: "detective", label: "b/d Detective", icon: "🔍" },
+  { type: "paint", label: "Paint", icon: "🎨" },
+  { type: "count", label: "Feed the Dolphin", icon: "🐟" },
+  { type: "trace", label: "Letter Trace", icon: "✍️" },
+  { type: "greet", label: "What Do We Say?", icon: "💬" },
 ];
 
 export type DebugScreen = "map" | "world" | "camp" | "journal" | "gate" | "new";
