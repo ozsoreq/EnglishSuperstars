@@ -82,6 +82,8 @@ writeFileSync(
     `export const EMOJI_ASSETS: ReadonlySet<string> = new Set(${JSON.stringify(keys, null, 2)});\n`,
 );
 // List for the service worker to pre-cache, so the art works offline.
-writeFileSync(join(out, "manifest.json"), JSON.stringify(keys.map((k) => `/emoji/${k}.webp`)) + "\n");
+// Our own art (public/art, see CUSTOM_ART in src/lib/emoji.ts) is cached too.
+const art = existsSync(join(root, "public/art")) ? readdirSync(join(root, "public/art")).map((f) => `/art/${f}`) : [];
+writeFileSync(join(out, "manifest.json"), JSON.stringify([...keys.map((k) => `/emoji/${k}.webp`), ...art]) + "\n");
 console.log(`Synced ${keys.length} emoji to ${relative(root, out)}/`);
 if (missing.length) console.log(`No Fluent 3D art (shown as text): ${missing.join(" ")}`);

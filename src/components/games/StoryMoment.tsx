@@ -16,7 +16,6 @@ import type { Quality } from "@/lib/srs";
 import { MicButton, type MicOutcome } from "../MicButton";
 import { Picture } from "../Picture";
 import { ReadingWord } from "../ReadingWord";
-import { Btn } from "../Btn";
 import { SpeakerButton, wait, type GameProps } from "./shared";
 import { Emoji } from "@/components/Emoji";
 
@@ -104,34 +103,36 @@ export function StoryMoment({ activity, chapter, onDone }: GameProps) {
   };
 
   const progress = restored.length / Math.max(1, words.length);
+  const hint = step === "hear" ? "הקשיבו למילה" : step === "say" ? "עכשיו אתם! אמרו את המילה" : "קוראים יחד";
 
   return (
-    <div className="flex h-full flex-col items-center gap-3">
-      {/* The scene being restored */}
-      <div className="chunky relative grid h-44 w-full max-w-md place-items-center overflow-hidden bg-gradient-to-b from-[#3d3f7a] to-[#2b2d5c]">
+    <div className="flex h-full flex-col items-center gap-4">
+      {/* Progress: the place lights up as each word joins it. */}
+      <div role="img" className="flex items-center gap-3 rounded-full bg-white/5 px-4 py-2" aria-label={`${restored.length} מתוך ${words.length} מילים`}>
         <motion.span
-          className="text-8xl"
-          animate={{ filter: `grayscale(${1 - progress}) brightness(${0.6 + progress * 0.4})`, scale: 1 + progress * 0.1 }}
+          animate={{ filter: `grayscale(${1 - progress}) brightness(${0.6 + progress * 0.4})` }}
           transition={{ duration: 0.8 }}
         >
-          <Emoji e={chapter.landmark} size="1em" anim="float" />
+          <Emoji e={chapter.landmark} size={40} />
         </motion.span>
-        {restored.map((rid, k) => {
-          const a = (k / Math.max(words.length, 1)) * Math.PI * 2 - Math.PI / 2;
-          return (
-            <motion.span
-              key={rid}
-              className="absolute"
-              initial={{ x: 0, y: 180, scale: 0.2, opacity: 0 }}
-              animate={{ x: Math.cos(a) * 130, y: Math.sin(a) * 58, scale: 1, opacity: 1, rotate: reduce ? 0 : [0, 10, -10, 0] }}
-              transition={{ type: "spring", stiffness: 120, damping: 12 }}
-            >
-              <Picture pic={WORDS[rid].pic} size={42} />
-            </motion.span>
-          );
-        })}
+        <div className="flex items-center gap-2" dir="ltr">
+          {words.map((x) => (
+            <span key={x} className="grid h-9 w-9 place-items-center rounded-full border-2 border-dashed border-white/20">
+              {restored.includes(x) && (
+                <motion.span
+                  initial={reduce ? false : { y: 160, scale: 2.5, opacity: 0 }}
+                  animate={{ y: 0, scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 140, damping: 14 }}
+                >
+                  <Picture pic={WORDS[x].pic} size={30} anim={false} />
+                </motion.span>
+              )}
+            </span>
+          ))}
+        </div>
       </div>
 
+      {/* The word: one big picture, its meaning, and the English once it's been heard and said. */}
       <AnimatePresence mode="wait">
         {w && id && (
           <motion.div
@@ -140,36 +141,35 @@ export function StoryMoment({ activity, chapter, onDone }: GameProps) {
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: -60, opacity: 0, scale: 0.5 }}
             transition={{ type: "spring", stiffness: 260, damping: 18 }}
-            className="chunky flex w-full max-w-sm flex-col items-center gap-2 bg-white/10 px-6 py-4"
+            className="chunky flex w-full max-w-sm flex-col items-center gap-1 bg-white/10 px-6 pb-3 pt-5"
           >
-            <Picture pic={w.pic} size={96} />
-            <div className="min-h-[60px]">{step === "read" ? <ReadingWord text={w.en} play={play} /> : <span className="text-3xl"><Emoji e="👂" anim="breathe" /></span>}</div>
-            <span className="text-base text-cream/70">{w.he}</span>
+            <Picture pic={w.pic} size={150} />
+            <span className="text-lg text-cream/80">{w.he}</span>
+            {step === "read" && <ReadingWord text={w.en} play={play} />}
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="flex min-h-28 items-center gap-4">
-        {w && step !== "read" && <SpeakerButton onClick={() => void sayWord(w.en)} />}
+      {/* One thing to do at a time. */}
+      <p className="text-xl font-bold text-cream">{hint}</p>
+      <div className="flex min-h-28 items-center justify-center gap-4">
+        {w && step === "hear" && (
+          <motion.div animate={reduce ? {} : { scale: [1, 1.1, 1] }} transition={{ duration: 1.2, repeat: Infinity }}>
+            <SpeakerButton onClick={() => void sayWord(w.en)} />
+          </motion.div>
+        )}
         {w && step === "say" && (
           <>
             <MicButton target={w.en} onResult={onMic} />
-            <Btn tone="ghost" className="text-base" onClick={() => void finishWord(false)}>
-              הלאה
-            </Btn>
+            <SpeakerButton onClick={() => void sayWord(w.en)} />
           </>
         )}
       </div>
-      <p className="text-base text-cream/80">
-        {step === "hear" ? "הקשיבו…" : step === "say" ? "עכשיו תורכם! אמרו את המילה" : "קוראים יחד, משמאל לימין"}
-      </p>
-      <div className="flex gap-1.5" aria-hidden>
-        {words.map((x) => (
-          <span key={x} className="text-xl">
-            {restored.includes(x) ? <Emoji e="🌟" anim="breathe" /> : <span className="inline-block h-3 w-3 rounded-full bg-white/25 align-middle" />}
-          </span>
-        ))}
-      </div>
+      {w && step === "say" && (
+        <button type="button" className="text-base text-cream/60 underline underline-offset-4" onClick={() => void finishWord(false)}>
+          דלגו על המילה
+        </button>
+      )}
     </div>
   );
 }

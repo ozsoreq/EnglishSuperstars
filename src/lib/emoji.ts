@@ -11,9 +11,18 @@ export function emojiKey(e: string): string {
     .join("-");
 }
 
-/** URL of the self-hosted Fluent 3D art, or null when there is none (render as text). */
+/**
+ * Our own art for things Unicode has no emoji for. The emoji stays in the
+ * content as the text fallback; the picture replaces it on screen.
+ */
+export const CUSTOM_ART: Readonly<Record<string, string>> = {
+  "1f5fc": "/art/lighthouse.svg", // 🗼 — there is no lighthouse emoji
+};
+
+/** URL of the self-hosted art, or null when there is none (render as text). */
 export function emojiSrc(e: string): string | null {
   const key = emojiKey(e);
+  if (CUSTOM_ART[key]) return CUSTOM_ART[key];
   return EMOJI_ASSETS.has(key) ? `/emoji/${key}.webp` : null;
 }
 

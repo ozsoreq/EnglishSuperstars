@@ -279,7 +279,7 @@ export function Quest({
               <div className="mb-2 flex items-center gap-2 text-lg font-bold text-mint">
                 <Emoji e={GAME_NAMES[activities[phase.step].type].icon} />
                 <span>{GAME_NAMES[activities[phase.step].type].he}</span>
-                <span className="text-sm font-normal text-cream/60">· {ROLE_NAMES[activities[phase.step].role]}</span>
+                {activities[phase.step].role === "warmup" && <span className="text-sm font-normal text-cream/60">· {ROLE_NAMES.warmup}</span>}
               </div>
               <div className="w-full flex-1" style={{ pointerEvents: between ? "none" : undefined }}>
                 {(() => {
@@ -304,7 +304,7 @@ export function Quest({
                 animate={{ filter: "grayscale(0)", rotate: [0, -4, 4, 0] }}
                 transition={{ duration: 1.4 }}
               >
-                {chapter.landmark}
+                <Emoji e={chapter.landmark} size="1em" />
               </motion.div>
               <p className="max-w-md text-xl leading-relaxed">{firstVisit ? chapter.resolved.he : "המקום זוהר ושמח שחזרתם!"}</p>
               {firstVisit && (

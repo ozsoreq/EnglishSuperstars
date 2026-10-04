@@ -1,6 +1,6 @@
 // Kochavim service worker: cache the app shell and the current Island's
 // assets so play continues on a flaky connection or a car ride.
-const CACHE = "kochavim-v3";
+const CACHE = "kochavim-v4";
 const SHELL = ["/", "/manifest.webmanifest", "/icon.svg"];
 
 self.addEventListener("install", (event) => {
